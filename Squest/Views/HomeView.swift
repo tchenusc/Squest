@@ -3,18 +3,53 @@ import SwiftUI
 struct Quest: Identifiable {
     let id = UUID()
     let rank: String
-    let rankColor: Color
     let title: String
     let description: String
     let duration: String
     let xp: String
 }
 
+// Helper to get color for rank
+func colorForRank(_ rank: String) -> Color {
+    switch rank.uppercased() {
+    case "A":
+        return Color(red: 1.0, green: 0.91, blue: 0.91)
+    case "B":
+        return Color(red: 1.0, green: 0.97, blue: 0.78)
+    case "C":
+        return Color(red: 0.82, green: 1.0, blue: 0.91)
+    case "S":
+        return Color(red: 0.85, green: 0.93, blue: 1.0)
+    case "S++":
+        return Color(red: 0.95, green: 0.85, blue: 1.0)
+    case "F":
+        return Color(red: 0.95, green: 0.95, blue: 0.95)
+    default:
+        return Color(.systemGray5)
+    }
+}
+
+// Helper to get sort value for rank
+func rankSortValue(_ rank: String) -> Int {
+    switch rank.uppercased() {
+    case "S++": return 0
+    case "S": return 1
+    case "A": return 2
+    case "B": return 3
+    case "C": return 4
+    case "F": return 5
+    default: return 6
+    }
+}
+
 let quests: [Quest] = [
-    Quest(rank: "C", rankColor: Color(red: 0.82, green: 1.0, blue: 0.91), title: "Morning Meditation", description: "Start your day with clarity and purpose", duration: "10 mins", xp: "50 XP"),
-    Quest(rank: "B", rankColor: Color(red: 1.0, green: 0.97, blue: 0.78), title: "Nature Explorer", description: "Take a walk in nature and document 3 interesting findings", duration: "30 mins", xp: "100 XP"),
-    Quest(rank: "B", rankColor: Color(red: 1.0, green: 0.97, blue: 0.78), title: "Knowledge Expansion", description: "Learn something new and share with a friend", duration: "45 mins", xp: "120 XP"),
-    Quest(rank: "A", rankColor: Color(red: 1.0, green: 0.91, blue: 0.91), title: "Digital Detox", description: "Go 3 hours without checking your phone or social media", duration: "3 hours", xp: "200 XP")
+    Quest(rank: "C", title: "Morning Meditation", description: "Start your day with clarity and purpose", duration: "10 mins", xp: "50 XP"),
+    Quest(rank: "B", title: "Nature Explorer", description: "Take a walk in nature and document 3 interesting findings", duration: "30 mins", xp: "100 XP"),
+    Quest(rank: "B", title: "Knowledge Expansion", description: "Learn something new and share with a friend", duration: "45 mins", xp: "120 XP"),
+    Quest(rank: "A", title: "Digital Detox", description: "Go 3 hours without checking your phone or social media", duration: "3 hours", xp: "200 XP"),
+    Quest(rank: "S", title: "Ultimate Challenge", description: "Complete all quests in one day", duration: "5 hours", xp: "500 XP"),
+    Quest(rank: "S++", title: "Legendary Feat", description: "Achieve the impossible!", duration: "8 hours", xp: "1000 XP"),
+    Quest(rank: "F", title: "Failed Quest", description: "Try again next time.", duration: "--", xp: "0 XP")
 ]
 
 struct HomeView: View {
@@ -24,15 +59,42 @@ struct HomeView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // Top row with title and streak
+            HStack {
+                // Modern, aesthetic title
+                HStack(spacing: 10) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(.purple)
+                    Text("Squest")
+                        .font(.system(size: 38, weight: .heavy, design: .rounded))
+                        .foregroundColor(.purple)
+                }
+                
+                Spacer()
+                
+                // Streak display
+                HStack(spacing: 4) {
+                    Image(systemName: "flame.fill")
+                        .foregroundColor(.orange)
+                    Text("7") // Placeholder streak count
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(.orange)
+                }
+                .padding(.trailing, 20)
+            }
+            .padding(.top, 32)
+            .padding(.leading, 20)
+            .padding(.bottom, 24)
+            
             Text("Available Quests")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundColor(.black)
-                .padding(.top, 24)
                 .padding(.horizontal, 20)
             
             ScrollView {
                 VStack(spacing: 20) {
-                    ForEach(quests) { quest in
+                    ForEach(quests.sorted { rankSortValue($0.rank) < rankSortValue($1.rank) }) { quest in
                         Button(action: {
                             selectedQuest = quest
                             showDetail = true
@@ -48,7 +110,7 @@ struct HomeView: View {
                                 }
                                 .frame(width: 60)
                                 .frame(maxHeight: .infinity)
-                                .background(quest.rankColor)
+                                .background(colorForRank(quest.rank))
                                 .cornerRadius(14, corners: [.topLeft, .bottomLeft])
                                 
                                 VStack(alignment: .leading, spacing: 6) {

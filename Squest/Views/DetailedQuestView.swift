@@ -18,7 +18,7 @@ struct DetailedQuestView: View {
                         .foregroundColor(.black)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 6)
-                        .background(quest.rankColor)
+                        .background(colorForRank(quest.rank))
                         .cornerRadius(13)
                 }
                 Spacer()
