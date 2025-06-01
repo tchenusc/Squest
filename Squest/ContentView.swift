@@ -36,16 +36,16 @@ struct ContentView: View {
         }
         .tint(.blue)
         .onAppear {
-                    #if DEBUG
-                    printAllBackgroundData(context: viewContext)
-                    #endif
-                }
+#if DEBUG
+            printAllBackgroundData(context: viewContext)
+#endif
+        }
     }
 }
 
 func printAllBackgroundData(context: NSManagedObjectContext) {
     let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
-
+    
     do {
         let results = try context.fetch(request)
         print("---- BackgroundData entries ----")
