@@ -4,8 +4,9 @@ import CoreData
 struct DetailedQuestView: View {
     let quest: Quest
     @Environment(\.managedObjectContext) private var viewContext
-    var isInProgress: Bool { checkInProgressStatus()
-    }
+    @State private var globalInProgressQuestId: Int64 = -1 // State to hold global in-progress ID
+    
+    var isInProgress: Bool { checkCurrentQuestInProgressStatus() }
     var onClose: (() -> Void)? = nil
     
     var body: some View {
@@ -84,22 +85,7 @@ struct DetailedQuestView: View {
             Spacer()
             
             // Conditional buttons based on quest state
-            if !isInProgress {
-                Button(action: {
-                    // Start Quest action: save quest ID to Core Data
-                    startQuest()
-                    onClose?()
-                }) {
-                    Text("Start Quest")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.purple)
-                        .cornerRadius(12)
-                }
-                .padding(.bottom, 18)
-            } else {
+            if isInProgress { // If *this* quest is in progress
                 HStack(spacing: 16) {
                     Button(action: {
                         // Cancel Quest action: reset quest ID in Core Data
@@ -130,6 +116,29 @@ struct DetailedQuestView: View {
                     }
                 }
                 .padding(.bottom, 18)
+            } else if globalInProgressQuestId == -1 { // If no quest is in progress globally
+                Button(action: {
+                    // Start Quest action: save quest ID to Core Data
+                    startQuest()
+                    onClose?()
+                }) {
+                    Text("Start Quest")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.purple)
+                        .cornerRadius(12)
+                }
+                .padding(.bottom, 18)
+            } else { // If another quest is in progress
+                Text("Another quest is in progress.")
+                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 18)
             }
         }
         .padding(.top, 24)
@@ -139,9 +148,13 @@ struct DetailedQuestView: View {
         .shadow(color: Color.black.opacity(0.13), radius: 18, x: 0, y: 8)
         .padding(.horizontal, 16)
         .frame(maxWidth: 430)
+        .onAppear {
+            checkGlobalInProgressQuest()
+        }
     }
     
-    private func checkInProgressStatus() -> Bool {
+    // Check if *this* quest is the one in progress
+    private func checkCurrentQuestInProgressStatus() -> Bool {
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
         request.fetchLimit = 1
         
@@ -153,8 +166,26 @@ struct DetailedQuestView: View {
                 return false
             }
         } catch {
-            print("Error fetching in-progress quest: \(error)")
+            print("Error fetching current quest in-progress status: \(error)")
             return false
+        }
+    }
+    
+    // Fetch the globally in-progress quest ID
+    private func checkGlobalInProgressQuest() {
+        let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+        request.fetchLimit = 1
+        
+        do {
+            let results = try viewContext.fetch(request)
+            if let data = results.first {
+                globalInProgressQuestId = data.quest_id_IP
+            } else {
+                globalInProgressQuestId = -1
+            }
+        } catch {
+            print("Error fetching global in-progress quest: \(error)")
+            globalInProgressQuestId = -1
         }
     }
     
@@ -175,7 +206,7 @@ struct DetailedQuestView: View {
             backgroundData.time_started = Date()
             
             try viewContext.save()
-            //isInProgress = true
+            // No need to update globalInProgressQuestId here, will be updated on next appear/change detection if needed.
         } catch {
             print("Error starting quest: \(error)")
         }
@@ -191,7 +222,7 @@ struct DetailedQuestView: View {
                 existingData.quest_id_IP = -1
                 existingData.time_started = nil
                 try viewContext.save()
-                //isInProgress = false
+                // No need to update globalInProgressQuestId here
             }
         } catch {
             print("Error cancelling quest: \(error)")
