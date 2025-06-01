@@ -1,8 +1,10 @@
 import SwiftUI
+import CoreData
 
 struct DetailedQuestView: View {
     let quest: Quest
-    @Binding var inProgress: Bool // Accept inProgress as a Binding
+    @Environment(\.managedObjectContext) private var viewContext
+    @State private var isInProgress: Bool = false
     var onClose: (() -> Void)? = nil
     
     var body: some View {
@@ -81,10 +83,10 @@ struct DetailedQuestView: View {
             Spacer()
             
             // Conditional buttons based on quest state
-            if !inProgress {
-                Button(action: { 
-                    // Start Quest action: set inProgress to true and close modal
-                    inProgress = true
+            if !isInProgress {
+                Button(action: {
+                    // Start Quest action: save quest ID to Core Data
+                    startQuest()
                     onClose?()
                 }) {
                     Text("Start Quest")
@@ -99,8 +101,8 @@ struct DetailedQuestView: View {
             } else {
                 HStack(spacing: 16) {
                     Button(action: {
-                        // Cancel Quest action: set inProgress to false and close modal
-                        inProgress = false
+                        // Cancel Quest action: reset quest ID in Core Data
+                        cancelQuest()
                         onClose?()
                     }) {
                         Text("Cancel")
@@ -113,9 +115,8 @@ struct DetailedQuestView: View {
                     }
                     
                     Button(action: {
-                        // Complete Quest action: set inProgress to false and close modal
-                        // Add logic to mark quest as completed separately if needed
-                        inProgress = false
+                        // Complete Quest action: reset quest ID in Core Data
+                        cancelQuest()
                         onClose?()
                     }) {
                         Text("Completed")
@@ -129,8 +130,6 @@ struct DetailedQuestView: View {
                 }
                 .padding(.bottom, 18)
             }
-            
-            
         }
         .padding(.top, 24)
         .padding(.horizontal, 24)
@@ -139,6 +138,66 @@ struct DetailedQuestView: View {
         .shadow(color: Color.black.opacity(0.13), radius: 18, x: 0, y: 8)
         .padding(.horizontal, 16)
         .frame(maxWidth: 430)
+        .onAppear {
+            checkInProgressStatus()
+        }
+    }
+    
+    private func checkInProgressStatus() {
+        let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+        request.fetchLimit = 1
+        
+        do {
+            let results = try viewContext.fetch(request)
+            if let data = results.first, data.quest_id_IP == quest.sidequest_id {
+                isInProgress = true
+            } else {
+                isInProgress = false
+            }
+        } catch {
+            print("Error fetching in-progress quest: \(error)")
+            isInProgress = false
+        }
+    }
+    
+    private func startQuest() {
+        let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+        
+        do {
+            let results = try viewContext.fetch(request)
+            let backgroundData: BackgroundData
+            
+            if let existingData = results.first {
+                backgroundData = existingData
+            } else {
+                backgroundData = BackgroundData(context: viewContext)
+            }
+            
+            backgroundData.quest_id_IP = Int64(quest.sidequest_id)
+            backgroundData.time_started = Date()
+            
+            try viewContext.save()
+            isInProgress = true
+        } catch {
+            print("Error starting quest: \(error)")
+        }
+    }
+    
+    private func cancelQuest() {
+        let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+        request.fetchLimit = 1
+        
+        do {
+            let results = try viewContext.fetch(request)
+            if let existingData = results.first {
+                existingData.quest_id_IP = -1
+                existingData.time_started = nil
+                try viewContext.save()
+                isInProgress = false
+            }
+        } catch {
+            print("Error cancelling quest: \(error)")
+        }
     }
 }
 
@@ -147,7 +206,6 @@ struct DetailedQuestView: View {
 
 struct DetailedQuestView_Previews: PreviewProvider {
     static var previews: some View {
-        // Define a sample quest for the preview
         let sampleQuest = Quest(
             sidequest_id: 1,
             name: "Sample Quest",
@@ -158,10 +216,10 @@ struct DetailedQuestView_Previews: PreviewProvider {
             xp_reward_amount: 75,
             gold_reward_amount: 10,
             badger_img_url: nil,
-            banner_img_url: nil,
-            inProgress: false
+            banner_img_url: nil
         )
         
-        DetailedQuestView(quest: sampleQuest, inProgress: .constant(false)) // Provide a constant binding for preview
+        DetailedQuestView(quest: sampleQuest)
+            .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
     }
 } 

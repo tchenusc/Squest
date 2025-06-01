@@ -12,7 +12,6 @@ struct Quest: Identifiable {
     let gold_reward_amount: Int
     let badger_img_url: String?
     let banner_img_url: String?
-    var inProgress: Bool = false
 }
 
 // Helper to get color for difficulty
@@ -181,7 +180,7 @@ struct HomeView: View {
         .background(Color(.systemGray6).opacity(0.5).ignoresSafeArea())
         .sheet(isPresented: $showDetail) {
             if let index = quests.firstIndex(where: { $0.id == selectedQuestID }) {
-                DetailedQuestView(quest: quests[index], inProgress: $quests[index].inProgress) {
+                DetailedQuestView(quest: quests[index]) {
                     showDetail = false
                 }
             }
