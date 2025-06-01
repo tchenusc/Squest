@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DetailedQuestView: View {
     let quest: Quest
+    @Binding var inProgress: Bool // Accept inProgress as a Binding
     var onClose: (() -> Void)? = nil
     
     var body: some View {
@@ -31,9 +32,10 @@ struct DetailedQuestView: View {
                 }
             }
             .padding(.bottom, 18)
+            .padding(.top, 24)
             
             // Description
-            Text("Begin your day with 10 minutes of meditation to center yourself, clear your mind, and set intentions for the day ahead. Find a quiet space, sit comfortably, and focus on your breath.")
+            Text(quest.long_description)
                 .font(.system(size: 16, weight: .regular, design: .rounded))
                 .foregroundColor(.black.opacity(0.85))
                 .padding(.bottom, 24)
@@ -78,18 +80,59 @@ struct DetailedQuestView: View {
             
             Spacer()
             
-            Button(action: { /* Start Quest action */ }) {
-                Text("Start Quest")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.purple)
-                    .cornerRadius(12)
+            // Conditional buttons based on quest state
+            if !inProgress {
+                Button(action: { 
+                    // Start Quest action: set inProgress to true and close modal
+                    inProgress = true
+                    onClose?()
+                }) {
+                    Text("Start Quest")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.purple)
+                        .cornerRadius(12)
+                }
+                .padding(.bottom, 18)
+            } else {
+                HStack(spacing: 16) {
+                    Button(action: {
+                        // Cancel Quest action: set inProgress to false and close modal
+                        inProgress = false
+                        onClose?()
+                    }) {
+                        Text("Cancel")
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(.systemGray5))
+                            .cornerRadius(12)
+                    }
+                    
+                    Button(action: {
+                        // Complete Quest action: set inProgress to false and close modal
+                        // Add logic to mark quest as completed separately if needed
+                        inProgress = false
+                        onClose?()
+                    }) {
+                        Text("Completed")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.green)
+                            .cornerRadius(12)
+                    }
+                }
+                .padding(.bottom, 18)
             }
-            .padding(.bottom, 18)
+            
+            
         }
-        .padding(.top, 32)
+        .padding(.top, 24)
         .padding(.horizontal, 24)
         .background(Color.white)
         .cornerRadius(22)
@@ -99,6 +142,23 @@ struct DetailedQuestView: View {
     }
 }
 
-#Preview {
-    DetailedQuestView(quest: quests[0])
+// Helper to get color for rank (assuming this is defined elsewhere and accessible)
+// If not, you might need to pass it or redefine it here for the preview
+// func colorForRank(_ rank: String) -> Color { ... }
+
+struct DetailedQuestView_Previews: PreviewProvider {
+    static var previews: some View {
+        // Define a sample quest for the preview
+        let sampleQuest = Quest(
+            rank: "C",
+            title: "Sample Quest",
+            short_description: "Short description for preview",
+            long_description: "This is a sample long description for the preview of the detailed view.",
+            duration: "15 mins",
+            xp: "75 XP",
+            inProgress: false
+        )
+        
+        DetailedQuestView(quest: sampleQuest, inProgress: .constant(false)) // Provide a constant binding for preview
+    }
 } 

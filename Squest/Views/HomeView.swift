@@ -4,9 +4,11 @@ struct Quest: Identifiable {
     let id = UUID()
     let rank: String
     let title: String
-    let description: String
+    let short_description: String
+    let long_description: String
     let duration: String
     let xp: String
+    var inProgress: Bool = false
 }
 
 // Helper to get color for rank
@@ -42,18 +44,18 @@ func rankSortValue(_ rank: String) -> Int {
     }
 }
 
-let quests: [Quest] = [
-    Quest(rank: "C", title: "Morning Meditation", description: "Start your day with clarity and purpose", duration: "10 mins", xp: "50 XP"),
-    Quest(rank: "B", title: "Nature Explorer", description: "Take a walk in nature and document 3 interesting findings", duration: "30 mins", xp: "100 XP"),
-    Quest(rank: "B", title: "Knowledge Expansion", description: "Learn something new and share with a friend", duration: "45 mins", xp: "120 XP"),
-    Quest(rank: "A", title: "Digital Detox", description: "Go 3 hours without checking your phone or social media", duration: "3 hours", xp: "200 XP"),
-    Quest(rank: "S", title: "Ultimate Challenge", description: "Complete all quests in one day", duration: "5 hours", xp: "500 XP"),
-    Quest(rank: "S++", title: "Legendary Feat", description: "Achieve the impossible!", duration: "8 hours", xp: "1000 XP"),
-    Quest(rank: "F", title: "Failed Quest", description: "Try again next time.", duration: "--", xp: "0 XP")
-]
-
 struct HomeView: View {
-    @State private var selectedQuest: Quest? = nil
+    @State private var quests: [Quest] = [
+        Quest(rank: "C", title: "Morning Meditation", short_description: "Start your day with clarity and purpose", long_description: "Begin your day with 10 minutes of meditation to center yourself, clear your mind, and set intentions for the day ahead. Find a quiet space, sit comfortably, and focus on your breath.", duration: "10 mins", xp: "50 XP"),
+        Quest(rank: "B", title: "Nature Explorer", short_description: "Take a walk in nature and document 3 interesting findings", long_description: "Step outside and immerse yourself in nature. Document three interesting plants, animals, or natural phenomena you observe. Take pictures or write descriptions.", duration: "30 mins", xp: "100 XP"),
+        Quest(rank: "B", title: "Knowledge Expansion", short_description: "Learn something new and share with a friend", long_description: "Dedicate 45 minutes to learning about a new topic. It could be anything from history to science. Then, share what you learned with a friend or family member.", duration: "45 mins", xp: "120 XP"),
+        Quest(rank: "A", title: "Digital Detox", short_description: "Go 3 hours without checking your phone or social media", long_description: "Unplug and disconnect for three consecutive hours. Avoid checking your phone, social media, emails, or any other digital distractions. Engage in a non-digital activity.", duration: "3 hours", xp: "200 XP"),
+        Quest(rank: "S", title: "Ultimate Challenge", short_description: "Complete all quests in one day", long_description: "Attempt to complete every available quest within a single 24-hour period. This requires significant planning and dedication.", duration: "5 hours", xp: "500 XP"),
+        Quest(rank: "S++", title: "Legendary Feat", short_description: "Achieve the impossible!", long_description: "Complete a hidden legendary quest that is only revealed to those who have achieved S rank on all other quests. The task is unknown until you reach this rank.", duration: "8 hours", xp: "1000 XP"),
+        Quest(rank: "F", title: "Failed Quest", short_description: "Try again next time.", long_description: "This quest represents a challenge that was attempted but not completed. Review what went wrong and prepare to try again.", duration: "--", xp: "0 XP")
+    ]
+    
+    @State private var selectedQuestID: UUID? = nil
     @State private var showDetail: Bool = false
     @State private var pressedQuestID: UUID? = nil
     
@@ -94,9 +96,9 @@ struct HomeView: View {
             
             ScrollView {
                 VStack(spacing: 20) {
-                    ForEach(quests.sorted { rankSortValue($0.rank) < rankSortValue($1.rank) }) { quest in
+                    ForEach($quests.sorted(by: { rankSortValue($0.wrappedValue.rank) < rankSortValue($1.wrappedValue.rank) })) { $quest in
                         Button(action: {
-                            selectedQuest = quest
+                            selectedQuestID = quest.id
                             showDetail = true
                         }) {
                             HStack(spacing: 0) {
@@ -117,7 +119,7 @@ struct HomeView: View {
                                     Text(quest.title)
                                         .font(.system(size: 18, weight: .bold, design: .rounded))
                                         .foregroundColor(.black)
-                                    Text(quest.description)
+                                    Text(quest.short_description)
                                         .font(.system(size: 15, weight: .regular, design: .rounded))
                                         .foregroundColor(.black.opacity(0.8))
                                     HStack {
@@ -164,8 +166,8 @@ struct HomeView: View {
         }
         .background(Color(.systemGray6).opacity(0.5).ignoresSafeArea())
         .sheet(isPresented: $showDetail) {
-            if let quest = selectedQuest {
-                DetailedQuestView(quest: quest) {
+            if let index = quests.firstIndex(where: { $0.id == selectedQuestID }) {
+                DetailedQuestView(quest: quests[index], inProgress: $quests[index].inProgress) {
                     showDetail = false
                 }
             }

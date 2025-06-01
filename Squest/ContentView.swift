@@ -31,6 +31,7 @@ struct ContentView: View {
                     Label("Profile", systemImage: "person.circle.fill")
                 }
         }
+        .tint(.blue)
     }
 }
 
