@@ -2,18 +2,22 @@ import SwiftUI
 
 struct Quest: Identifiable {
     let id = UUID()
-    let rank: String
-    let title: String
+    let sidequest_id: Int
+    let name: String
+    let difficulty: String
     let short_description: String
     let long_description: String
-    let duration: String
-    let xp: String
+    let estimated_duration: String
+    let xp_reward_amount: Int
+    let gold_reward_amount: Int
+    let badger_img_url: String?
+    let banner_img_url: String?
     var inProgress: Bool = false
 }
 
-// Helper to get color for rank
-func colorForRank(_ rank: String) -> Color {
-    switch rank.uppercased() {
+// Helper to get color for difficulty
+func colorForDifficulty(_ difficulty: String) -> Color {
+    switch difficulty.uppercased() {
     case "A":
         return Color(red: 1.0, green: 0.91, blue: 0.91)
     case "B":
@@ -31,9 +35,9 @@ func colorForRank(_ rank: String) -> Color {
     }
 }
 
-// Helper to get sort value for rank
-func rankSortValue(_ rank: String) -> Int {
-    switch rank.uppercased() {
+// Helper to get sort value for difficulty
+func difficultySortValue(_ difficulty: String) -> Int {
+    switch difficulty.uppercased() {
     case "S++": return 0
     case "S": return 1
     case "A": return 2
@@ -46,13 +50,13 @@ func rankSortValue(_ rank: String) -> Int {
 
 struct HomeView: View {
     @State private var quests: [Quest] = [
-        Quest(rank: "C", title: "Morning Meditation", short_description: "Start your day with clarity and purpose", long_description: "Begin your day with 10 minutes of meditation to center yourself, clear your mind, and set intentions for the day ahead. Find a quiet space, sit comfortably, and focus on your breath.", duration: "10 mins", xp: "50 XP"),
-        Quest(rank: "B", title: "Nature Explorer", short_description: "Take a walk in nature and document 3 interesting findings", long_description: "Step outside and immerse yourself in nature. Document three interesting plants, animals, or natural phenomena you observe. Take pictures or write descriptions.", duration: "30 mins", xp: "100 XP"),
-        Quest(rank: "B", title: "Knowledge Expansion", short_description: "Learn something new and share with a friend", long_description: "Dedicate 45 minutes to learning about a new topic. It could be anything from history to science. Then, share what you learned with a friend or family member.", duration: "45 mins", xp: "120 XP"),
-        Quest(rank: "A", title: "Digital Detox", short_description: "Go 3 hours without checking your phone or social media", long_description: "Unplug and disconnect for three consecutive hours. Avoid checking your phone, social media, emails, or any other digital distractions. Engage in a non-digital activity.", duration: "3 hours", xp: "200 XP"),
-        Quest(rank: "S", title: "Ultimate Challenge", short_description: "Complete all quests in one day", long_description: "Attempt to complete every available quest within a single 24-hour period. This requires significant planning and dedication.", duration: "5 hours", xp: "500 XP"),
-        Quest(rank: "S++", title: "Legendary Feat", short_description: "Achieve the impossible!", long_description: "Complete a hidden legendary quest that is only revealed to those who have achieved S rank on all other quests. The task is unknown until you reach this rank.", duration: "8 hours", xp: "1000 XP"),
-        Quest(rank: "F", title: "Failed Quest", short_description: "Try again next time.", long_description: "This quest represents a challenge that was attempted but not completed. Review what went wrong and prepare to try again.", duration: "--", xp: "0 XP")
+        Quest(sidequest_id: 1, name: "Morning Meditation", difficulty: "C", short_description: "Start your day with clarity and purpose", long_description: "Begin your day with 10 minutes of meditation to center yourself, clear your mind, and set intentions for the day ahead. Find a quiet space, sit comfortably, and focus on your breath.", estimated_duration: "10 mins", xp_reward_amount: 50, gold_reward_amount: 10, badger_img_url: nil, banner_img_url: nil),
+        Quest(sidequest_id: 2, name: "Nature Explorer", difficulty: "B", short_description: "Take a walk in nature and document 3 interesting findings", long_description: "Step outside and immerse yourself in nature. Document three interesting plants, animals, or natural phenomena you observe. Take pictures or write descriptions.", estimated_duration: "30 mins", xp_reward_amount: 100, gold_reward_amount: 20, badger_img_url: nil, banner_img_url: nil),
+        Quest(sidequest_id: 3, name: "Knowledge Expansion", difficulty: "B", short_description: "Learn something new and share with a friend", long_description: "Dedicate 45 minutes to learning about a new topic. It could be anything from history to science. Then, share what you learned with a friend or family member.", estimated_duration: "45 mins", xp_reward_amount: 120, gold_reward_amount: 25, badger_img_url: nil, banner_img_url: nil),
+        Quest(sidequest_id: 4, name: "Digital Detox", difficulty: "A", short_description: "Go 3 hours without checking your phone or social media", long_description: "Unplug and disconnect for three consecutive hours. Avoid checking your phone, social media, emails, or any other digital distractions. Engage in a non-digital activity.", estimated_duration: "3 hours", xp_reward_amount: 200, gold_reward_amount: 40, badger_img_url: nil, banner_img_url: nil),
+        Quest(sidequest_id: 5, name: "Ultimate Challenge", difficulty: "S", short_description: "Complete all quests in one day", long_description: "Attempt to complete every available quest within a single 24-hour period. This requires significant planning and dedication.", estimated_duration: "5 hours", xp_reward_amount: 500, gold_reward_amount: 100, badger_img_url: nil, banner_img_url: nil),
+        Quest(sidequest_id: 6, name: "Legendary Feat", difficulty: "S++", short_description: "Achieve the impossible!", long_description: "Complete a hidden legendary quest that is only revealed to those who have achieved S rank on all other quests. The task is unknown until you reach this rank.", estimated_duration: "8 hours", xp_reward_amount: 1000, gold_reward_amount: 250, badger_img_url: nil, banner_img_url: nil),
+        Quest(sidequest_id: 7, name: "Failed Quest", difficulty: "F", short_description: "Try again next time.", long_description: "This quest represents a challenge that was attempted but not completed. Review what went wrong and prepare to try again.", estimated_duration: "--", xp_reward_amount: 0, gold_reward_amount: 0, badger_img_url: nil, banner_img_url: nil)
     ]
     
     @State private var selectedQuestID: UUID? = nil
@@ -96,14 +100,24 @@ struct HomeView: View {
             
             ScrollView {
                 VStack(spacing: 20) {
-                    ForEach($quests.sorted(by: { rankSortValue($0.wrappedValue.rank) < rankSortValue($1.wrappedValue.rank) })) { $quest in
+                    ForEach($quests.sorted(by: { quest1, quest2 in
+                        let difficultyValue1 = difficultySortValue(quest1.wrappedValue.difficulty)
+                        let difficultyValue2 = difficultySortValue(quest2.wrappedValue.difficulty)
+
+                        if difficultyValue1 != difficultyValue2 {
+                            return difficultyValue1 < difficultyValue2
+                        } else {
+                            // If difficulties are the same, sort by xp_reward_amount descending
+                            return quest1.wrappedValue.xp_reward_amount > quest2.wrappedValue.xp_reward_amount
+                        }
+                    })) { $quest in
                         Button(action: {
                             selectedQuestID = quest.id
                             showDetail = true
                         }) {
                             HStack(spacing: 0) {
                                 VStack(spacing: 0) {
-                                    Text(quest.rank)
+                                    Text(quest.difficulty)
                                         .font(.system(size: 22, weight: .bold, design: .rounded))
                                         .foregroundColor(.black)
                                     Text("RANK")
@@ -112,22 +126,22 @@ struct HomeView: View {
                                 }
                                 .frame(width: 60)
                                 .frame(maxHeight: .infinity)
-                                .background(colorForRank(quest.rank))
+                                .background(colorForDifficulty(quest.difficulty))
                                 .cornerRadius(14, corners: [.topLeft, .bottomLeft])
                                 
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text(quest.title)
+                                    Text(quest.name)
                                         .font(.system(size: 18, weight: .bold, design: .rounded))
                                         .foregroundColor(.black)
                                     Text(quest.short_description)
                                         .font(.system(size: 15, weight: .regular, design: .rounded))
                                         .foregroundColor(.black.opacity(0.8))
                                     HStack {
-                                        Text(quest.duration)
+                                        Text(quest.estimated_duration)
                                             .font(.system(size: 14, weight: .medium, design: .rounded))
                                             .foregroundColor(.gray)
                                         Spacer()
-                                        Text(quest.xp)
+                                        Text("\(quest.xp_reward_amount) XP")
                                             .font(.system(size: 15, weight: .bold, design: .rounded))
                                             .foregroundColor(Color.purple)
                                     }

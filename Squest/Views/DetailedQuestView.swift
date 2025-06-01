@@ -9,17 +9,17 @@ struct DetailedQuestView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(quest.title)
+                    Text(quest.name)
                         .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundColor(.black)
                     
                     // Difficulty badge
-                    Text("Difficulty: \(quest.rank)-Rank")
+                    Text("Difficulty: \(quest.difficulty) Rank")
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundColor(.black)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 6)
-                        .background(colorForRank(quest.rank))
+                        .background(colorForDifficulty(quest.difficulty))
                         .cornerRadius(13)
                 }
                 Spacer()
@@ -44,7 +44,7 @@ struct DetailedQuestView: View {
             HStack(spacing: 8) {
                 Image(systemName: "clock")
                     .foregroundColor(Color.purple)
-                Text("Estimated time: \(quest.duration)")
+                Text("Estimated time: \(quest.estimated_duration)")
                     .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundColor(.black.opacity(0.8))
             }
@@ -59,11 +59,11 @@ struct DetailedQuestView: View {
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundColor(.black)
                     Spacer()
-                    Text("25 Points")
+                    Text("\(quest.gold_reward_amount) Gold")
                         .font(.system(size: 15, weight: .medium, design: .rounded))
                         .foregroundColor(.black)
                 }
-                Text("\(quest.xp)")
+                Text("\(quest.xp_reward_amount) XP")
                     .font(.system(size: 15, weight: .bold, design: .rounded))
                     .foregroundColor(Color.purple)
                 Text("Possible badge: ")
@@ -142,20 +142,23 @@ struct DetailedQuestView: View {
     }
 }
 
-// Helper to get color for rank (assuming this is defined elsewhere and accessible)
-// If not, you might need to pass it or redefine it here for the preview
-// func colorForRank(_ rank: String) -> Color { ... }
+// Helper to get color for difficulty (assuming this is defined elsewhere and accessible)
+// func colorForDifficulty(_ difficulty: String) -> Color { ... }
 
 struct DetailedQuestView_Previews: PreviewProvider {
     static var previews: some View {
         // Define a sample quest for the preview
         let sampleQuest = Quest(
-            rank: "C",
-            title: "Sample Quest",
+            sidequest_id: 1,
+            name: "Sample Quest",
+            difficulty: "C",
             short_description: "Short description for preview",
             long_description: "This is a sample long description for the preview of the detailed view.",
-            duration: "15 mins",
-            xp: "75 XP",
+            estimated_duration: "15 mins",
+            xp_reward_amount: 75,
+            gold_reward_amount: 10,
+            badger_img_url: nil,
+            banner_img_url: nil,
             inProgress: false
         )
         
