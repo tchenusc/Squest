@@ -4,7 +4,8 @@ import CoreData
 struct DetailedQuestView: View {
     let quest: Quest
     @Environment(\.managedObjectContext) private var viewContext
-    @State private var isInProgress: Bool = false
+    var isInProgress: Bool { checkInProgressStatus()
+    }
     var onClose: (() -> Void)? = nil
     
     var body: some View {
@@ -138,25 +139,22 @@ struct DetailedQuestView: View {
         .shadow(color: Color.black.opacity(0.13), radius: 18, x: 0, y: 8)
         .padding(.horizontal, 16)
         .frame(maxWidth: 430)
-        .onAppear {
-            checkInProgressStatus()
-        }
     }
     
-    private func checkInProgressStatus() {
+    private func checkInProgressStatus() -> Bool {
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
         request.fetchLimit = 1
         
         do {
             let results = try viewContext.fetch(request)
             if let data = results.first, data.quest_id_IP == quest.sidequest_id {
-                isInProgress = true
+                return true
             } else {
-                isInProgress = false
+                return false
             }
         } catch {
             print("Error fetching in-progress quest: \(error)")
-            isInProgress = false
+            return false
         }
     }
     
@@ -177,7 +175,7 @@ struct DetailedQuestView: View {
             backgroundData.time_started = Date()
             
             try viewContext.save()
-            isInProgress = true
+            //isInProgress = true
         } catch {
             print("Error starting quest: \(error)")
         }
@@ -193,7 +191,7 @@ struct DetailedQuestView: View {
                 existingData.quest_id_IP = -1
                 existingData.time_started = nil
                 try viewContext.save()
-                isInProgress = false
+                //isInProgress = false
             }
         } catch {
             print("Error cancelling quest: \(error)")
