@@ -14,10 +14,11 @@ struct PersistenceController {
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
         let viewContext = result.container.viewContext
-        for _ in 0..<10 {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-        }
+        //for _ in 0..<10 {
+        let newItem = BackgroundData(context: viewContext)
+        newItem.quest_id_IP = -1
+        newItem.time_started = Date()
+        //}
         do {
             try viewContext.save()
         } catch {
