@@ -19,7 +19,7 @@ struct Quest: Identifiable {
 func colorForDifficulty(_ difficulty: String) -> Color {
     switch difficulty.uppercased() {
     case "A":
-        return Color(red: 1.0, green: 0.91, blue: 0.91)
+        return Color(red: 1.0, green: 0.70, blue: 0.75)
     case "B":
         return Color(red: 1.0, green: 0.97, blue: 0.78)
     case "C":
@@ -246,6 +246,8 @@ fileprivate struct RoundedCorner: Shape {
     }
 }
 
-#Preview {
+#Preview
+{
     HomeView()
-} 
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+}
