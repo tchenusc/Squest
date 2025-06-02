@@ -9,6 +9,10 @@ class HomeViewModel: ObservableObject {
     @Published var selectedQuestID: UUID? = nil
     @Published var showDetail: Bool = false
     @Published private(set) var pressedQuestID: UUID? = nil
+    
+    // Quest Completion Pop-up State
+    @Published var showCompletionPopUp: Bool = false
+    @Published var completedQuestData: (name: String, xp: Int, gold: Int)? = nil
 
     // MARK: - Private Properties
     private let viewContext: NSManagedObjectContext
@@ -32,7 +36,21 @@ class HomeViewModel: ObservableObject {
     
     func dismissDetail() {
         showDetail = false
+        // When detail is dismissed, we might check if a quest was completed
+        // For now, this is a placeholder. Actual completion logic might be in DetailedQuestView.
         checkInProgressQuest()
+    }
+    
+    /// Method to be called when a quest is completed
+    func questCompleted(name: String, xp: Int, gold: Int) {
+        completedQuestData = (name: name, xp: xp, gold: gold)
+        showCompletionPopUp = true
+    }
+    
+    /// Method to dismiss the quest completion pop-up
+    func dismissCompletionPopUp() {
+        showCompletionPopUp = false
+        completedQuestData = nil
     }
 
     // MARK: - Computed Properties

@@ -9,6 +9,9 @@ struct DetailedQuestView: View {
     var isInProgress: Bool { checkCurrentQuestInProgressStatus() }
     var onClose: (() -> Void)? = nil
     
+    /// Closure to call when the quest is successfully completed
+    var onComplete: ((_ questName: String, _ xp: Int, _ gold: Int) -> Void)? = nil
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
@@ -103,6 +106,8 @@ struct DetailedQuestView: View {
                     
                     Button(action: {
                         // Complete Quest action: reset quest ID in Core Data
+                        // Call the completion handler before closing
+                        onComplete?(quest.name, quest.xp_reward_amount, quest.gold_reward_amount)
                         cancelQuest()
                         onClose?()
                     }) {
