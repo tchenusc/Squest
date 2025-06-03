@@ -34,10 +34,12 @@ struct ContentView: View {
                         Label("Friends", systemImage: "person.2.fill")
                     }
                 
-                ProfileView()
-                    .tabItem {
-                        Label("Profile", systemImage: "person.circle.fill")
-                    }
+                NavigationView { // Wrap ProfileView in a NavigationView
+                    ProfileView()
+                }
+                .tabItem {
+                    Label("Profile", systemImage: "person.circle.fill")
+                }
             }
             .tint(.blue)
             .onAppear {
