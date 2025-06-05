@@ -4,6 +4,8 @@ import CoreData
 struct DetailedQuestView: View {
     let quest: Quest
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject var userProfile: UserProfile
+    
     @State private var globalInProgressQuestId: Int64 = -1 // State to hold global in-progress ID
     
     var isInProgress: Bool { checkCurrentQuestInProgressStatus() }
@@ -161,6 +163,7 @@ struct DetailedQuestView: View {
     // Check if *this* quest is the one in progress
     private func checkCurrentQuestInProgressStatus() -> Bool {
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+        request.predicate = NSPredicate(format: "user_id == %d", userProfile.current_user_id)
         request.fetchLimit = 1
         
         do {
@@ -179,6 +182,7 @@ struct DetailedQuestView: View {
     // Fetch the globally in-progress quest ID
     private func checkGlobalInProgressQuest() {
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+        request.predicate = NSPredicate(format: "user_id == %d", userProfile.current_user_id)
         request.fetchLimit = 1
         
         do {
@@ -196,6 +200,7 @@ struct DetailedQuestView: View {
     
     private func startQuest() {
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+        request.predicate = NSPredicate(format: "user_id == %d", userProfile.current_user_id)
         
         do {
             let results = try viewContext.fetch(request)
@@ -205,13 +210,13 @@ struct DetailedQuestView: View {
                 backgroundData = existingData
             } else {
                 backgroundData = BackgroundData(context: viewContext)
+                backgroundData.user_id = Int64(userProfile.current_user_id)
             }
             
             backgroundData.quest_id_IP = Int64(quest.sidequest_id)
             backgroundData.time_started = Date()
             
             try viewContext.save()
-            // No need to update globalInProgressQuestId here, will be updated on next appear/change detection if needed.
         } catch {
             print("Error starting quest: \(error)")
         }
@@ -219,6 +224,7 @@ struct DetailedQuestView: View {
     
     private func cancelQuest() {
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+        request.predicate = NSPredicate(format: "user_id == %d", userProfile.current_user_id)
         request.fetchLimit = 1
         
         do {
@@ -227,7 +233,6 @@ struct DetailedQuestView: View {
                 existingData.quest_id_IP = -1
                 existingData.time_started = nil
                 try viewContext.save()
-                // No need to update globalInProgressQuestId here
             }
         } catch {
             print("Error cancelling quest: \(error)")
@@ -255,5 +260,6 @@ struct DetailedQuestView_Previews: PreviewProvider {
         
         DetailedQuestView(quest: sampleQuest)
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+            .environmentObject(UserProfile(userId: 1)) // Provide a UserProfile for preview
     }
 } 

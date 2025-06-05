@@ -11,6 +11,7 @@ import CoreData
 struct ContentView: View {
     
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject var userProfile: UserProfile
     
     // State for presenting the quest completion pop-up globally
     @State private var showCompletionPopUp: Bool = false
@@ -44,7 +45,7 @@ struct ContentView: View {
             .tint(.blue)
             .onAppear {
 #if DEBUG
-                printAllBackgroundData(context: viewContext)
+                printAllBackgroundData(context: viewContext, userId: userProfile.current_user_id)
 #endif
             }
             // Apply blur and disable interaction to the content behind the pop-up
@@ -75,17 +76,18 @@ struct ContentView: View {
     }
 }
 
-func printAllBackgroundData(context: NSManagedObjectContext) {
+func printAllBackgroundData(context: NSManagedObjectContext, userId: Int) {
     let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+    request.predicate = NSPredicate(format: "user_id == %d", userId)
     
     do {
         let results = try context.fetch(request)
-        print("---- BackgroundData entries ----")
+        print("---- BackgroundData entries for user \(userId) ----")
         if results.isEmpty {
-            print("No BackgroundData found.")
+            print("No BackgroundData found for current user.")
         } else {
             for data in results {
-                print("quest_id_IP: \(data.quest_id_IP), time_started: \(data.time_started?.description ?? "nil")")
+                print("quest_id_IP: \(data.quest_id_IP), time_started: \(data.time_started?.description ?? "nil"), user_id: \(data.user_id)")
             }
         }
         print("-------------------------------")
@@ -97,4 +99,5 @@ func printAllBackgroundData(context: NSManagedObjectContext) {
 #Preview {
     ContentView()
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        .environmentObject(UserProfile(userId: 1)) // Provide a UserProfile for preview
 }
