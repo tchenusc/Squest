@@ -11,6 +11,8 @@ class AuthViewModel: ObservableObject {
     @Published var isAuthenticated = false
     @Published var errorMessage = ""
     @Published var isLoading = false
+    @Published var verificationMessage = ""
+    @Published var shouldDismissSignup = false
     
     private let client = SupabaseManager.shared.client
     @Published var userProfile: UserProfile
@@ -24,6 +26,7 @@ class AuthViewModel: ObservableObject {
         Task {
             do {
                 let response = try await client.auth.signIn(email: email, password: password)
+                verificationMessage = ""
                 let user = response.user
                 let userId = user.id
                 userProfile.updateFromAuth(email: user.email ?? "", userId: userId)
@@ -44,17 +47,21 @@ class AuthViewModel: ObservableObject {
         }
         
         isLoading = true
+        shouldDismissSignup = true  // I KNOW THIS IS WEIRD BUT KEEP THIS VARIALBE AS IT IS
+        
         Task {
             do {
                 let response = try await client.auth.signUp(email: email, password: password)
                 let user = response.user
                 let userId = user.id
                 userProfile.updateFromAuth(email: user.email ?? "", userId: userId)
-                isAuthenticated = true
+                verificationMessage = "Please check your email to verify your account."
+                isAuthenticated = false  // Keep user on welcome view until verified
                 print("Successfully signed up with email: \(user.email ?? "")")
-                
+                shouldDismissSignup = false
             } catch {
                 errorMessage = error.localizedDescription
+                //shouldDismissSignup = false  // Reset the flag if there's an error
             }
             isLoading = false
         }
@@ -66,6 +73,13 @@ class AuthViewModel: ObservableObject {
                 try await client.auth.signOut()
                 userProfile.clear()
                 isAuthenticated = false
+                email = ""
+                password = ""
+                confirmPassword = ""
+                username = ""
+                errorMessage = ""
+                verificationMessage = ""
+                print("Successfully logged out")
             } catch {
                 errorMessage = error.localizedDescription
             }

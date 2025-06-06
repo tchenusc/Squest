@@ -38,6 +38,13 @@ struct WelcomeView: View {
                             Text("Create an account to start your adventure")
                                 .font(.body)
                                 .foregroundColor(.gray)
+                            
+                            if !authViewModel.verificationMessage.isEmpty {
+                                Text(authViewModel.verificationMessage)
+                                    .font(.body)
+                                    .foregroundColor(.green)
+                                    .padding(.top, 8)
+                            }
                         }
                         .padding(.horizontal)
 
@@ -76,7 +83,7 @@ struct WelcomeView: View {
                                     }
                                 }
                                 .frame(maxWidth: .infinity)
-                                .padding()
+                                .padding(.vertical, 16)
                                 .background(Color.blue)
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
@@ -94,7 +101,7 @@ struct WelcomeView: View {
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
-                                .padding()
+                                .padding(.vertical, 16)
                                 .background(Color.gray.opacity(0.2))
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
@@ -106,7 +113,7 @@ struct WelcomeView: View {
                                     .fontWeight(.semibold)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding()
+                            .padding(.vertical, 16)
                             .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(10)
@@ -127,6 +134,13 @@ struct WelcomeView: View {
             .sheet(isPresented: $showSignupSheet) {
                 SignupView()
                     .environmentObject(authViewModel)
+            }
+            .onChange(of: authViewModel.shouldDismissSignup) { newValue, _ in
+                if newValue {
+                    //print("IM CLOSING THE SIGNUP PAGE")
+                    showSignupSheet = false
+                    authViewModel.shouldDismissSignup = false  // Reset the flag
+                }
             }
         }
     }

@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @EnvironmentObject private var authViewModel: AuthViewModel
+    
     var body: some View {
         NavigationView {
             // Add a thin line below the navigation bar area
@@ -34,6 +36,20 @@ struct SettingsView: View {
                         // Action for tab
                         // Example: NavigationLink("", destination: SomeTabView()) // Replace SomeTabView with actual view
                     }
+                    
+                    Section {
+                        Button(action: {
+                            authViewModel.logout()
+                        }) {
+                            HStack {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    .foregroundColor(.red)
+                                Text("Log Out")
+                                    .foregroundColor(.red)
+                                Spacer()
+                            }
+                        }
+                    }
                 }
                 .padding(.top, -10) // Adjust top padding to -10
             }
@@ -45,4 +61,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+        .environmentObject(AuthViewModel(userProfile: UserProfile()))
 } 

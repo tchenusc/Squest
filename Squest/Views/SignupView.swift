@@ -83,8 +83,8 @@ struct SignupView: View {
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue) // Primary button color
+                        .padding(.vertical, 16)
+                        .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                         .padding(.horizontal)
@@ -93,12 +93,12 @@ struct SignupView: View {
                         // Login Link
                         HStack {
                             Text("Already have an account?")
-                                .foregroundColor(.gray) // Gray text
+                                .foregroundColor(.gray)
                             
                             Button("Sign In") {
                                 dismiss()
                             }
-                            .foregroundColor(.blue) // Blue link color
+                            .foregroundColor(.blue)
                         }
                         .padding(.top)
                         
@@ -109,8 +109,15 @@ struct SignupView: View {
             }
             .navigationBarItems(leading: Button(action: { dismiss() }) {
                 Image(systemName: "xmark")
-                    .foregroundColor(.gray) // Gray close button
+                    .foregroundColor(.gray)
+                    .padding(8)
+                    .contentShape(Rectangle())
             })
+            .onChange(of: viewModel.shouldDismissSignup) { newValue, _ in
+                if newValue {
+                    dismiss()
+                }
+            }
         }
     }
 }
