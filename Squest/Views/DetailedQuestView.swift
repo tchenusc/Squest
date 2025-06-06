@@ -138,7 +138,7 @@ struct DetailedQuestView: View {
                         .cornerRadius(12)
                 }
                 .padding(.bottom, 18)
-            } else { // If another quest is in progress
+            } else {
                 Text("Another quest is in progress.")
                     .font(.system(size: 16, weight: .medium, design: .rounded))
                     .foregroundColor(.gray)
@@ -163,7 +163,11 @@ struct DetailedQuestView: View {
     // Check if *this* quest is the one in progress
     private func checkCurrentQuestInProgressStatus() -> Bool {
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
-        request.predicate = NSPredicate(format: "user_id == %d", userProfile.current_user_id)
+        // Safely unwrap userId and use %@ for UUID predicate
+        guard let userId = userProfile.current_user_id else {
+            return false // No user logged in
+        }
+        request.predicate = NSPredicate(format: "user_id == %@", userId as CVarArg)
         request.fetchLimit = 1
         
         do {
@@ -182,7 +186,12 @@ struct DetailedQuestView: View {
     // Fetch the globally in-progress quest ID
     private func checkGlobalInProgressQuest() {
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
-        request.predicate = NSPredicate(format: "user_id == %d", userProfile.current_user_id)
+        // Safely unwrap userId and use %@ for UUID predicate
+        guard let userId = userProfile.current_user_id else {
+            globalInProgressQuestId = -1
+            return // No user logged in
+        }
+        request.predicate = NSPredicate(format: "user_id == %@", userId as CVarArg)
         request.fetchLimit = 1
         
         do {
@@ -199,8 +208,15 @@ struct DetailedQuestView: View {
     }
     
     private func startQuest() {
+        // Safely unwrap userId
+        guard let userId = userProfile.current_user_id else {
+             print("Error starting quest: No user logged in")
+             return
+        }
+        
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
-        request.predicate = NSPredicate(format: "user_id == %d", userProfile.current_user_id)
+        // Use %@ for UUID predicate
+        request.predicate = NSPredicate(format: "user_id == %@", userId as CVarArg)
         
         do {
             let results = try viewContext.fetch(request)
@@ -210,7 +226,7 @@ struct DetailedQuestView: View {
                 backgroundData = existingData
             } else {
                 backgroundData = BackgroundData(context: viewContext)
-                backgroundData.user_id = Int64(userProfile.current_user_id)
+                backgroundData.user_id = userId
             }
             
             backgroundData.quest_id_IP = Int64(quest.sidequest_id)
@@ -223,8 +239,15 @@ struct DetailedQuestView: View {
     }
     
     private func cancelQuest() {
+        // Safely unwrap userId
+         guard let userId = userProfile.current_user_id else {
+             print("Error cancelling quest: No user logged in")
+             return
+         }
+        
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
-        request.predicate = NSPredicate(format: "user_id == %d", userProfile.current_user_id)
+        // Use %@ for UUID predicate
+        request.predicate = NSPredicate(format: "user_id == %@", userId as CVarArg)
         request.fetchLimit = 1
         
         do {
@@ -248,18 +271,18 @@ struct DetailedQuestView_Previews: PreviewProvider {
         let sampleQuest = Quest(
             sidequest_id: 1,
             name: "Sample Quest",
-            difficulty: "C",
-            short_description: "Short description for preview",
-            long_description: "This is a sample long description for the preview of the detailed view.",
-            estimated_duration: "15 mins",
-            xp_reward_amount: 75,
-            gold_reward_amount: 10,
+            difficulty: "A",
+            short_description: "This is a short description.",
+            long_description: "This is a long description that provides more details about the quest.",
+            estimated_duration: "30 minutes",
+            xp_reward_amount: 100,
+            gold_reward_amount: 50,
             badger_img_url: nil,
             banner_img_url: nil
         )
         
-        DetailedQuestView(quest: sampleQuest)
+        return DetailedQuestView(quest: sampleQuest)
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-            .environmentObject(UserProfile(userId: 1)) // Provide a UserProfile for preview
+            .environmentObject(UserProfile(userId: UUID(), email: "preview@test.com")) // Provide a UserProfile with a UUID for preview
     }
 } 

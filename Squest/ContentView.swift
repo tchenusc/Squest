@@ -20,7 +20,7 @@ struct ContentView: View {
     var body: some View {
         ZStack { // Use ZStack to overlay the pop-up and background effects
             TabView {
-                HomeView(context: viewContext)
+                HomeView(context: viewContext, userProfile: userProfile)
                     .tabItem {
                         Label("Home", systemImage: "house.fill")
                     }
@@ -47,6 +47,10 @@ struct ContentView: View {
 #if DEBUG
                 printAllBackgroundData(context: viewContext, userId: userProfile.current_user_id)
 #endif
+                // Call the user-specific seeding logic when the view appears and userProfile is available
+                if let userId = userProfile.current_user_id {
+                    seedBackgroundDataForUser(context: viewContext, userId: userId)
+                }
             }
             // Apply blur and disable interaction to the content behind the pop-up
             .blur(radius: showCompletionPopUp ? 5 : 0)
@@ -76,18 +80,24 @@ struct ContentView: View {
     }
 }
 
-func printAllBackgroundData(context: NSManagedObjectContext, userId: Int) {
+func printAllBackgroundData(context: NSManagedObjectContext, userId: UUID?) {
+    guard let userId = userId else {
+        print("---- No user ID available for BackgroundData fetch ----")
+        return
+    }
+    
     let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
-    request.predicate = NSPredicate(format: "user_id == %d", userId)
+    request.predicate = NSPredicate(format: "user_id == %@", userId as CVarArg)
     
     do {
         let results = try context.fetch(request)
-        print("---- BackgroundData entries for user \(userId) ----")
+        print("---- BackgroundData entries for user \(userId.uuidString) ----")
         if results.isEmpty {
             print("No BackgroundData found for current user.")
         } else {
             for data in results {
-                print("quest_id_IP: \(data.quest_id_IP), time_started: \(data.time_started?.description ?? "nil"), user_id: \(data.user_id)")
+                // Safely unwrap optional user_id for printing
+                print("quest_id_IP: \(data.quest_id_IP), time_started: \(data.time_started?.description ?? "nil"), user_id: \(data.user_id?.uuidString ?? "nil")")
             }
         }
         print("-------------------------------")
@@ -96,8 +106,38 @@ func printAllBackgroundData(context: NSManagedObjectContext, userId: Int) {
     }
 }
 
+// Function for user-specific conditional seeding
+func seedBackgroundDataForUser(context: NSManagedObjectContext, userId: UUID) {
+    let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+    // Check if a BackgroundData object already exists for this user ID
+    request.predicate = NSPredicate(format: "user_id == %@", userId as CVarArg)
+    
+    do {
+        let results = try context.fetch(request)
+        
+        // If no BackgroundData exists for this user, seed it
+        if results.isEmpty {
+            let backgroundData = BackgroundData(context: context)
+            backgroundData.quest_id_IP = -1 // Default initial state
+            backgroundData.time_started = Date()
+            backgroundData.user_id = userId // Associate with the current user ID
+            
+            do {
+                try context.save()
+                print("✅ Seeded initial BackgroundData for user \(userId.uuidString).")
+            } catch {
+                print("❌ Failed to seed Core Data for user \(userId.uuidString): \(error)")
+            }
+        } else {
+            print("ℹ️ BackgroundData already exists for user \(userId.uuidString), no seeding needed.")
+        }
+    } catch {
+        print("Error checking for existing BackgroundData for user \(userId.uuidString): \(error)")
+    }
+}
+
 #Preview {
     ContentView()
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-        .environmentObject(UserProfile(userId: 1)) // Provide a UserProfile for preview
+        .environmentObject(UserProfile(userId: UUID(), email: "previewTest@mail.com")) // Provide a UserProfile with a UUID for preview
 }

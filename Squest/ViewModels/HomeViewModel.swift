@@ -16,12 +16,15 @@ class HomeViewModel: ObservableObject {
 
     // MARK: - Private Properties
     private let viewContext: NSManagedObjectContext
+    private let userProfile: UserProfile
     
     // MARK: - Initialization
-    init(viewContext: NSManagedObjectContext) {
+    init(viewContext: NSManagedObjectContext, userProfile: UserProfile) {
         self.viewContext = viewContext
+        self.userProfile = userProfile
         loadMockQuests()
-        checkInProgressQuest()
+        // checkInProgressQuest will now be called after the user profile is available, perhaps in onAppear of the view
+        // checkInProgressQuest()
     }
     
     // MARK: - Public Methods
@@ -82,13 +85,22 @@ class HomeViewModel: ObservableObject {
     }
 
     func checkInProgressQuest() {
+        // Only fetch if user is logged in and has a UUID
+        guard let userId = userProfile.current_user_id else {
+            inProgressQuestId = -1 // No user logged in, no quest in progress for this user
+            return
+        }
+        
         let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
+        // Filter by the current user's ID
+        request.predicate = NSPredicate(format: "user_id == %@", userId as CVarArg)
         request.fetchLimit = 1
+        
         do {
             let results = try viewContext.fetch(request)
             inProgressQuestId = results.first?.quest_id_IP ?? -1
         } catch {
-            print("Error fetching in-progress quest: \(error)")
+            print("Error fetching in-progress quest for user \(userId.uuidString): \(error)")
             inProgressQuestId = -1
         }
     }

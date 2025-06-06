@@ -7,16 +7,22 @@ struct HomeView: View {
     @Environment(\.managedObjectContext) private var viewContext
     
     // MARK: - State
+    // ViewModel will be initialized in init with dependencies
     @StateObject private var viewModel: HomeViewModel
 
     // MARK: - Initialization
-    init(context: NSManagedObjectContext) {
-        _viewModel = StateObject(wrappedValue: HomeViewModel(viewContext: context))
+    // Correctly initialize ViewModel in init with context and userProfile
+    init(context: NSManagedObjectContext, userProfile: UserProfile) {
+        _viewModel = StateObject(wrappedValue: HomeViewModel(viewContext: context, userProfile: userProfile))
     }
 
     // MARK: - Body
     var body: some View {
-        ZStack {
+        // Remove ViewModel initialization from body
+        // Initialize ViewModel here using the environment objects
+        // _viewModel = StateObject(wrappedValue: HomeViewModel(viewContext: viewContext, userProfile: userProfile))
+        
+        return ZStack { // Use ZStack to overlay the pop-up and background effects
             VStack(alignment: .leading, spacing: 0) {
                 HomeHeaderView()
                 
@@ -70,7 +76,7 @@ struct HomeView: View {
                         viewModel.dismissCompletionPopUp()
                     }
                 )
-                .zIndex(1)
+                .zIndex(1) // Ensure pop-up is on top
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
@@ -86,6 +92,7 @@ struct HomeView: View {
             }
         }
         .onAppear {
+            // Fetch data using the ViewModel when the view appears and environment is stable
             viewModel.checkInProgressQuest()
         }
     }
@@ -93,5 +100,7 @@ struct HomeView: View {
 
 // MARK: - Preview
 #Preview {
-    HomeView(context: PersistenceController.preview.container.viewContext)
+    let tempUser = UserProfile(userId: UUID(), email: "preview@test.com")
+    HomeView(context: PersistenceController.preview.container.viewContext, userProfile: tempUser)
+        .environmentObject(tempUser) // Provide a UserProfile for preview
 }

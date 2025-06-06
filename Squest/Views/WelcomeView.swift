@@ -134,5 +134,5 @@ struct WelcomeView: View {
 
 #Preview {
     WelcomeView()
-        .environmentObject(AuthViewModel())
+        .environmentObject(AuthViewModel(userProfile: UserProfile()))
 }

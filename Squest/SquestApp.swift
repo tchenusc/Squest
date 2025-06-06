@@ -11,14 +11,18 @@ import CoreData
 @main
 struct SquestApp: App {
     let persistenceController = PersistenceController.shared
-    @StateObject var userProfile = UserProfile(userId: 1)
-    @StateObject private var authViewModel = AuthViewModel()
+    @StateObject var userProfile: UserProfile
+    @StateObject private var authViewModel: AuthViewModel
     
     init() {
         // Seed data on app launch if needed
+        let userProfile = UserProfile(userId: nil, email: "test@mail.com")
+        _userProfile = StateObject(wrappedValue: userProfile)
+        _authViewModel = StateObject(wrappedValue: AuthViewModel(userProfile: userProfile))
+        
         //clearCoreData(context: persistenceController.container.viewContext)
-        seedIfNeeded(context: persistenceController.container.viewContext)
-        //printAllBackgroundData(context: persistenceController.container.viewContext)
+        //seedIfNeeded(context: persistenceController.container.viewContext)
+        printAllBackgroundData(context: persistenceController.container.viewContext)
     }
     
     var body: some Scene {
@@ -31,25 +35,6 @@ struct SquestApp: App {
             } else {
                 WelcomeView()
                     .environmentObject(authViewModel)
-            }
-        }
-    }
-    
-    func seedIfNeeded(context: NSManagedObjectContext) {
-        let request: NSFetchRequest<BackgroundData> = BackgroundData.fetchRequest()
-        let results = try? context.fetch(request)
-        
-        if results?.isEmpty ?? true {
-            let backgroundData = BackgroundData(context: context)
-            backgroundData.quest_id_IP = -1
-            backgroundData.time_started = Date()
-            backgroundData.user_id = 1 // Set initial user_id
-            
-            do {
-                try context.save()
-                print("✅ Seeded initial Quest.")
-            } catch {
-                print("❌ Failed to seed Core Data: \(error)")
             }
         }
     }
@@ -91,7 +76,7 @@ struct SquestApp: App {
                     let questID = data.quest_id_IP
                     let timeStarted = data.time_started?.description ?? "nil"
                     let userID = data.user_id
-                    print("🧾 quest_id_IP: \(questID), time_started: \(timeStarted), user_id: \(userID)")
+                    print("🧾 quest_id_IP: \(questID), time_started: \(timeStarted), user_id: \(userID ?? UUID())")
                 }
             }
         } catch {

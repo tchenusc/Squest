@@ -16,7 +16,7 @@ struct PersistenceController {
         let viewContext = result.container.viewContext
         //for _ in 0..<10 {
         let newItem = BackgroundData(context: viewContext)
-        newItem.user_id = 1
+        newItem.user_id = UUID()
         newItem.quest_id_IP = -1
         newItem.time_started = Date()
         //}
