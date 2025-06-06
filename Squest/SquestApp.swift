@@ -11,21 +11,27 @@ import CoreData
 @main
 struct SquestApp: App {
     let persistenceController = PersistenceController.shared
-    // Create a shared UserProfile object
-    @StateObject var userProfile = UserProfile(userId: 1) // Initialize with a default user ID
+    @StateObject var userProfile = UserProfile(userId: 1)
+    @StateObject private var authViewModel = AuthViewModel()
     
     init() {
         // Seed data on app launch if needed
-        clearCoreData(context: persistenceController.container.viewContext)
+        //clearCoreData(context: persistenceController.container.viewContext)
         seedIfNeeded(context: persistenceController.container.viewContext)
-        printAllBackgroundData(context: persistenceController.container.viewContext)
+        //printAllBackgroundData(context: persistenceController.container.viewContext)
     }
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environmentObject(userProfile) // Provide the userProfile to the environment
+            if authViewModel.isAuthenticated {
+                ContentView()
+                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                    .environmentObject(userProfile)
+                    .environmentObject(authViewModel)
+            } else {
+                WelcomeView()
+                    .environmentObject(authViewModel)
+            }
         }
     }
     
