@@ -80,13 +80,13 @@ struct SignupView: View {
                             } else {
                                 Text("Create Account")
                                     .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
                             }
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
                         .padding(.horizontal)
                         .disabled(viewModel.isLoading)
                         

@@ -137,7 +137,9 @@ func seedBackgroundDataForUser(context: NSManagedObjectContext, userId: UUID) {
 }
 
 #Preview {
+    let tempUser = UserProfile(userId: UUID(), email: "previewTest@mail.com")
     ContentView()
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-        .environmentObject(UserProfile(userId: UUID(), email: "previewTest@mail.com")) // Provide a UserProfile with a UUID for preview
+        .environmentObject(tempUser) // Provide a UserProfile with a UUID for preview
+        .environmentObject(AuthViewModel(userProfile: tempUser))
 }

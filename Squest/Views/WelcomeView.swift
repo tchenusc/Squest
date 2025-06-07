@@ -5,14 +5,14 @@ struct WelcomeView: View {
     @State private var showLoginForm = false
     @State private var showSignupSheet = false
     @State private var localAuthStatus = false
-
+    
     var body: some View {
         NavigationView {
             ZStack {
                 // Background color
                 Color(red: 30/255, green: 30/255, blue: 50/255)
                     .ignoresSafeArea()
-
+                
                 ScrollView {
                     VStack(spacing: 20) {
                         Text("SQuest")
@@ -34,7 +34,7 @@ struct WelcomeView: View {
                                 .font(.title)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
-
+                            
                             Text("Create an account to start your adventure")
                                 .font(.body)
                                 .foregroundColor(.gray)
@@ -47,7 +47,7 @@ struct WelcomeView: View {
                             }
                         }
                         .padding(.horizontal)
-
+                        
                         // Login Form
                         if showLoginForm {
                             VStack(spacing: 15) {
@@ -58,7 +58,7 @@ struct WelcomeView: View {
                                     text: $authViewModel.email
                                 )
                                 .colorScheme(.dark)
-
+                                
                                 AuthTextField(
                                     placeholder: "Password",
                                     systemImage: "lock",
@@ -66,13 +66,13 @@ struct WelcomeView: View {
                                     text: $authViewModel.password
                                 )
                                 .colorScheme(.dark)
-
+                                
                                 if !authViewModel.errorMessage.isEmpty {
                                     Text(authViewModel.errorMessage)
                                         .foregroundColor(.red)
                                         .font(.caption)
                                 }
-
+                                
                                 Button(action: authViewModel.login) {
                                     if authViewModel.isLoading {
                                         ProgressView()
@@ -80,46 +80,46 @@ struct WelcomeView: View {
                                     } else {
                                         Text("Sign In")
                                             .fontWeight(.semibold)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 16)
+                                            .background(Color.blue)
+                                            .foregroundColor(.white)
+                                            .cornerRadius(10)
                                     }
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
                                 .padding(.horizontal)
                                 .disabled(authViewModel.isLoading)
                             }
                             .padding(.top, 20)
                         }
-
+                        
                         // Buttons
                         VStack(spacing: 15) {
                             if !showLoginForm {
                                 Button(action: { showLoginForm = true }) {
                                     Text("Log In")
                                         .fontWeight(.semibold)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .background(Color.gray.opacity(0.2))
+                                        .foregroundColor(.white)
+                                        .cornerRadius(10)
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(Color.gray.opacity(0.2))
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
                                 .padding(.horizontal)
                             }
-
+                            
                             Button(action: { showSignupSheet = true }) {
                                 Text("Get Started")
                                     .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
                             .padding(.horizontal)
                         }
-
+                        
                         // Prevents excessive bottom spacing
                         Spacer().frame(height: 40)
                     }
