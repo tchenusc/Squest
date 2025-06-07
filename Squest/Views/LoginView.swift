@@ -3,6 +3,7 @@ import SwiftUI
 struct LoginView: View {
     @EnvironmentObject private var viewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var keyboardHeight: CGFloat = 0
     
     var body: some View {
         NavigationView {
@@ -90,6 +91,7 @@ struct LoginView: View {
                     }
                     .padding(.horizontal)
                 }
+                .scrollDismissesKeyboard(.immediately)
             }
             .navigationBarItems(leading: Button(action: { dismiss() }) {
                 Image(systemName: "xmark")
@@ -98,6 +100,7 @@ struct LoginView: View {
                     .contentShape(Rectangle())
             })
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }
 

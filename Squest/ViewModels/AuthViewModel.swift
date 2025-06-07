@@ -55,7 +55,7 @@ class AuthViewModel: ObservableObject {
                 let user = response.user
                 let userId = user.id
                 userProfile.updateFromAuth(email: user.email ?? "", userId: userId)
-                verificationMessage = "Please check your email to verify your account."
+                verificationMessage = "Account Created!"
                 isAuthenticated = false  // Keep user on welcome view until verified
                 print("Successfully signed up with email: \(user.email ?? "")")
                 shouldDismissSignup = false
