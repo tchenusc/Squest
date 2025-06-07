@@ -1,44 +1,36 @@
 import SwiftUI
 
-struct SignupView: View {
+struct LoginView: View {
     @EnvironmentObject private var viewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
-            ZStack { // Use ZStack for background color
-                Color(red: 30/255, green: 30/255, blue: 50/255) // Match WelcomeView background
+            ZStack {
+                Color(red: 30/255, green: 30/255, blue: 50/255)
                     .ignoresSafeArea()
                 
                 ScrollView {
                     VStack(spacing: 20) {
                         // Logo and Title
                         VStack(spacing: 10) {
-                            Image(systemName: "person.circle.fill")
+                            Image(systemName: "person.circle")
                                 .resizable()
                                 .frame(width: 80, height: 80)
-                                .foregroundColor(.blue) // Keep the icon color, or change if needed
+                                .foregroundColor(.blue)
                             
-                            Text("Create Account")
+                            Text("Welcome Back")
                                 .font(.title)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white) // White text for dark background
+                                .foregroundColor(.white)
                             
-                            Text("Join us today")
-                                .foregroundColor(.gray) // Gray text for subtitle
+                            Text("Sign in to continue")
+                                .foregroundColor(.gray)
                         }
                         .padding(.top, 30)
                         
-                        // Signup Form
+                        // Login Form
                         VStack(spacing: 15) {
-                            AuthTextField(
-                                placeholder: "Username",
-                                systemImage: "person",
-                                isSecure: false,
-                                text: $viewModel.username
-                            )
-                            .colorScheme(.dark) // Ensure text field is dark mode aware
-                            
                             AuthTextField(
                                 placeholder: "Email",
                                 systemImage: "envelope",
@@ -54,14 +46,6 @@ struct SignupView: View {
                                 text: $viewModel.password
                             )
                             .colorScheme(.dark)
-                            
-                            AuthTextField(
-                                placeholder: "Confirm Password",
-                                systemImage: "lock",
-                                isSecure: true,
-                                text: $viewModel.confirmPassword
-                            )
-                            .colorScheme(.dark)
                         }
                         .padding(.top, 30)
                         
@@ -72,13 +56,13 @@ struct SignupView: View {
                                 .font(.caption)
                         }
                         
-                        // Sign Up Button
-                        Button(action: viewModel.signup) {
+                        // Login Button
+                        Button(action: viewModel.login) {
                             if viewModel.isLoading {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             } else {
-                                Text("Create Account")
+                                Text("Sign In")
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 16)
@@ -90,12 +74,12 @@ struct SignupView: View {
                         .padding(.horizontal)
                         .disabled(viewModel.isLoading)
                         
-                        // Login Link
+                        // Sign Up Link
                         HStack {
-                            Text("Already have an account?")
+                            Text("Don't have an account?")
                                 .foregroundColor(.gray)
                             
-                            Button("Sign In") {
+                            Button("Sign Up") {
                                 dismiss()
                             }
                             .foregroundColor(.blue)
@@ -113,16 +97,11 @@ struct SignupView: View {
                     .padding(8)
                     .contentShape(Rectangle())
             })
-            .onChange(of: viewModel.shouldDismissSignup) { newValue, _ in
-                if newValue {
-                    dismiss()
-                }
-            }
         }
     }
 }
 
 #Preview {
-    SignupView()
+    LoginView()
         .environmentObject(AuthViewModel(userProfile: UserProfile()))
-}
+} 
