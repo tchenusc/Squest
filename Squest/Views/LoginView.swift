@@ -82,6 +82,7 @@ struct LoginView: View {
                             
                             Button("Sign Up") {
                                 dismiss()
+                                viewModel.errorMessage = ""
                             }
                             .foregroundColor(.blue)
                         }
@@ -93,7 +94,7 @@ struct LoginView: View {
                 }
                 .scrollDismissesKeyboard(.immediately)
             }
-            .navigationBarItems(leading: Button(action: { dismiss() }) {
+            .navigationBarItems(leading: Button(action: { dismiss(); viewModel.errorMessage = "" }) {
                 Image(systemName: "xmark")
                     .foregroundColor(.gray)
                     .padding(8)

@@ -97,6 +97,7 @@ struct SignupView: View {
                             
                             Button("Sign In") {
                                 dismiss()
+                                viewModel.errorMessage = ""
                             }
                             .foregroundColor(.blue)
                         }
@@ -107,7 +108,7 @@ struct SignupView: View {
                     .padding(.horizontal)
                 }
             }
-            .navigationBarItems(leading: Button(action: { dismiss() }) {
+            .navigationBarItems(leading: Button(action: { dismiss(); viewModel.errorMessage = "" }) {
                 Image(systemName: "xmark")
                     .foregroundColor(.gray)
                     .padding(8)

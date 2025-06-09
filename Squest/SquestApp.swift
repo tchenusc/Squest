@@ -27,17 +27,23 @@ struct SquestApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if authViewModel.isAuthenticated {
-                ContentView()
-                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                    .environmentObject(userProfile)
-                    .environmentObject(authViewModel)
-            } else {
-                WelcomeView()
-                    .environmentObject(authViewModel)
+            Group {
+                if authViewModel.isAuthenticated {
+                    ContentView()
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                        .environmentObject(userProfile)
+                        .environmentObject(authViewModel)
+                } else {
+                    WelcomeView()
+                        .environmentObject(authViewModel)
+                }
+            }
+            .onAppear {
+                authViewModel.restoreSession()
             }
         }
     }
+
     
     func clearCoreData(context: NSManagedObjectContext) {
         let entities = context.persistentStoreCoordinator?.managedObjectModel.entities
