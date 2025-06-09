@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Supabase
 
 func colorForDifficulty(_ difficulty: String) -> Color {
     switch difficulty.uppercased() {
@@ -40,3 +41,27 @@ struct RoundedCorner: Shape {
         return Path(path.cgPath)
     }
 } 
+
+
+struct UsernameCheck: Decodable {
+    let id: UUID
+}
+
+func isUsernameAvailable(username: String) async -> Bool {
+    let client = SupabaseManager.shared.client
+    let lowercaseUsername = username.lowercased()
+
+    do {
+        let result: [UsernameCheck] = try await client
+            .from("users")
+            .select("id")
+            .eq("username", value: lowercaseUsername)
+            .limit(1)
+            .execute()
+            .value
+        return result.isEmpty
+    } catch {
+        print("❌ Username check failed: \(error.localizedDescription)")
+        return false
+    }
+}

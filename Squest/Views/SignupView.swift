@@ -32,12 +32,46 @@ struct SignupView: View {
                         // Signup Form
                         VStack(spacing: 15) {
                             AuthTextField(
+                                placeholder: "Displayed Name",
+                                systemImage: "person.text.rectangle",
+                                isSecure: false,
+                                text: $viewModel.displayedName
+                            )
+                            .colorScheme(.dark)
+                            
+                            AuthTextField(
                                 placeholder: "Username",
                                 systemImage: "person",
                                 isSecure: false,
                                 text: $viewModel.username
                             )
-                            .colorScheme(.dark) // Ensure text field is dark mode aware
+                            .colorScheme(.dark)
+                            
+                            // Username availability status
+                            HStack {
+                                Spacer()
+                                switch viewModel.usernameStatus {
+                                case .idle:
+                                    Text("")
+                                case .checking:
+                                    Text("Checking...")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                case .available:
+                                    Label("Available", systemImage: "checkmark.circle.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                case .taken:
+                                    Label("Taken", systemImage: "xmark.circle.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                case .error(let error):
+                                    Text("Error: \(error)")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                }
+                            }
+                            .padding(.top, -10) // Adjust spacing as needed
                             
                             AuthTextField(
                                 placeholder: "Email",
