@@ -2,6 +2,11 @@ import SwiftUI
 
 struct ProfileView: View {
     @State private var levelProgress: Double = 0.75 // Example progress value
+    @State private var coins: Int = 1000 // Example coin amount
+    @State private var showingCoinDescription: Bool = false // New state variable for pop-up
+    @State private var coinHStackFrame: CGRect = .zero // New state variable to store the frame
+    @State private var isCoinDisplayPressed: Bool = false // New state variable for tap animation
+    @State private var shouldCoinDisplayAnimateOnDismiss: Bool = false // New state for dismissal animation
     
     var body: some View {
         ZStack {
@@ -9,6 +14,49 @@ struct ProfileView: View {
                 // Use ZStack to layer content and the settings button
                 ZStack(alignment: .topTrailing) {
                     VStack(alignment: .leading, spacing: 0) {
+                        // Coin Display in top left
+                        HStack { // Outer HStack for horizontal padding
+                            HStack { // Inner HStack for coin display content
+                                Image("CoinPouch")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30, height: 30)
+                                Text("\(coins)")
+                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    .foregroundColor(.black)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+                            .background(GeometryReader { geometry in // Capture the frame of the inner HStack
+                                Color.clear.onAppear {
+                                    coinHStackFrame = geometry.frame(in: .global)
+                                }
+                            })
+                            .scaleEffect(isCoinDisplayPressed || shouldCoinDisplayAnimateOnDismiss ? 0.95 : 1.0) // Apply consistent scale effect
+                            .animation(.easeOut(duration: 0.2), value: isCoinDisplayPressed) // Animation for press effect
+                            .animation(.easeOut(duration: 0.2), value: shouldCoinDisplayAnimateOnDismiss) // Animation for dismissal
+                            .onTapGesture {
+                                withAnimation { // Existing animation for appearance/disappearance of bubble
+                                    showingCoinDescription.toggle()
+                                }
+                                // Add tap animation for coin display
+                                isCoinDisplayPressed = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    isCoinDisplayPressed = false
+                                }
+                            }
+                            Spacer() // Push the coin display to the left
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                        
                         // Profile Header
                         VStack(spacing: 16) {
                             // Avatar with shadow and border
@@ -122,9 +170,65 @@ struct ProfileView: View {
                 }
             }
             .background(Color(.systemGray6).opacity(0.5).ignoresSafeArea())
+
+            // Popover as a top-level overlay on the main ZStack
+            if showingCoinDescription {
+                // Transparent background to dismiss the popover on outside tap
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(.easeOut(duration: 0.2)) { // Ensure animation on dismissal
+                            showingCoinDescription = false
+                        }
+                        // Trigger coin display animation on dismissal
+                        shouldCoinDisplayAnimateOnDismiss = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            shouldCoinDisplayAnimateOnDismiss = false
+                        }
+                    }
+                    .zIndex(1) // Ensure it's above other content but below the popover itself
+                
+                InfoBubbleView()
+                    .transition(
+                        .asymmetric(
+                            insertion: .scale(scale: 0.8).combined(with: .opacity).animation(.interactiveSpring(response: 0.4, dampingFraction: 0.6, blendDuration: 0)),
+                            removal: .scale(scale: 0.8).combined(with: .opacity).animation(.interactiveSpring(response: 0.4, dampingFraction: 0.6, blendDuration: 0))
+                        )
+                    ) // Pop in place effect with spring animation
+                    .position(x: coinHStackFrame.minX + 130, y: coinHStackFrame.maxY + 20) // Position over coin pouch center
+                    .zIndex(2) // Ensure the popover is above the transparent background
+            }
         }
         // Keep navigationTitle if you want the default title appearance
         // .navigationTitle("Profile")
+    }
+}
+
+struct InfoBubbleView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Your earned coins.")
+                .font(.firaSansBold(s: 14))
+            +
+            Text(" Obtained by completing quests of various types of difficulty.").font(.firaSans(s: 14))
+            
+            Text("Rumors say that these are the currency of an up and coming region to be explored.")
+                .font(.firaSans(s: 14))
+        }
+        .foregroundColor(.black)
+        .padding()
+        .background(Color(red: 0.8, green: 0.7, blue: 0.9)) // Changed background color to absolute light purple
+        .cornerRadius(12)
+        .overlay(
+            Triangle()
+                .fill(Color(red: 0.8, green: 0.7, blue: 0.9)) // Changed triangle fill color to match bubble
+                .frame(width: 20, height: 10)
+                .offset(x: -99, y: -10), // Adjusted x offset to align with coin pouch
+            alignment: .top // Align arrow to top of the bubble content
+        )
+        .shadow(radius: 0)
+        .frame(maxWidth: 260) // Adjusted max width to 260 from example
+        .fixedSize(horizontal: false, vertical: true) // Allow text to wrap and expand vertically
     }
 }
 
@@ -181,6 +285,17 @@ struct ActivityRow: View {
         .background(Color(.systemGray6).opacity(0.5))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+    }
+}
+
+struct Triangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))      // Top center
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))   // Bottom right
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))   // Bottom left
+        path.closeSubpath()
+        return path
     }
 }
 

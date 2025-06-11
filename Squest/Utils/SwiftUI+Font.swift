@@ -11,5 +11,11 @@ extension Font {
     static func funnel(s: CGFloat) -> Font {
         return Font.custom("FunnelDisplay-Bold", size: s)
     }
+    static func firaSans(s: CGFloat) -> Font {
+        return Font.custom("FiraSans-Regular", size: s)
+    }
+    static func firaSansBold(s: CGFloat) -> Font {
+        return Font.custom("FiraSans-Bold", size: s)
+    }
 }
 
