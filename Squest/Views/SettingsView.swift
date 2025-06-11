@@ -4,58 +4,55 @@ struct SettingsView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
     
     var body: some View {
-        NavigationView {
-            // Add a thin line below the navigation bar area
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(Color(.systemGray3))
-                    .frame(height: 10.2)
-                
-                List {
-                    Section {
-                        // Log item
+        // Removed redundant NavigationView as SettingsView is embedded in ProfileView's NavigationView via ContentView.
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(Color(.systemGray3))
+                .frame(height: 10.2)
+            
+            List {
+                Section {
+                    // Log item
+                    NavigationLink(destination: LogView()) {
                         HStack {
                             Image(systemName: "doc.plaintext") // Example icon for log
                                 .foregroundColor(.blue)
                             Text("Log")
                             Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
                         }
-                        // Action can be added here if needed, e.g., using a NavigationLink or Button
-                        
-                        // Removed Tab item
-                        // HStack {
-                        //     Image(systemName: "square.on.square") // Example icon for tab
-                        //         .foregroundColor(.blue)
-                        //     Text("Tab")
-                        //     Spacer()
-                        //     Image(systemName: "chevron.right")
-                        //         .foregroundColor(.secondary)
-                        // }
-                        // Action for tab
-                        // Example: NavigationLink("", destination: SomeTabView()) // Replace SomeTabView with actual view
                     }
                     
-                    Section {
-                        Button(action: {
-                            authViewModel.logout()
-                        }) {
-                            HStack {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    .foregroundColor(.red)
-                                Text("Log Out")
-                                    .foregroundColor(.red)
-                                Spacer()
-                            }
+                    // Removed Tab item
+                    // HStack {
+                    //     Image(systemName: "square.on.square") // Example icon for tab
+                    //         .foregroundColor(.blue)
+                    //     Text("Tab")
+                    //     Spacer()
+                    //     Image(systemName: "chevron.right")
+                    //         .foregroundColor(.secondary)
+                    // }
+                    // Action for tab
+                    // Example: NavigationLink("", destination: SomeTabView()) // Replace SomeTabView with actual view
+                }
+                
+                Section {
+                    Button(action: {
+                        authViewModel.logout()
+                    }) {
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .foregroundColor(.red)
+                            Text("Log Out")
+                                .foregroundColor(.red)
+                            Spacer()
                         }
                     }
                 }
-                .padding(.top, -10) // Adjust top padding to -10
             }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline) // Use inline display mode for title
+            .padding(.top, -10) // Adjust top padding to -10
         }
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline) // Use inline display mode for title
     }
 }
 

@@ -39,17 +39,18 @@ struct ProfileView: View {
                         VStack(alignment: .leading, spacing: 24) {
                             // Level Progress Section
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Level Progress")
-                                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                                    .foregroundColor(.black)
-                                
                                 HStack {
-                                    Text("Level 5")
-                                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                    Text("Level Progress")
+                                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                                        .foregroundColor(.black)
                                     Spacer()
-                                    Text("75%")
-                                        .font(.system(size: 17, weight: .medium, design: .rounded))
-                                        .foregroundColor(.secondary)
+                                    Text("Level 5")
+                                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color(red: 0.49, green: 0.4, blue: 0.82))
+                                        .cornerRadius(12)
                                 }
                                 
                                 // Progress Bar
@@ -60,11 +61,15 @@ struct ProfileView: View {
                                             .frame(height: 12)
                                         
                                         RoundedRectangle(cornerRadius: 8)
-                                            .fill(Color.blue)
+                                            .fill(Color(red: 0.49, green: 0.4, blue: 0.82))
                                             .frame(width: geometry.size.width * levelProgress, height: 12)
                                     }
                                 }
                                 .frame(height: 12)
+                                
+                                Text("75% to next level")
+                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .foregroundColor(.secondary)
                             }
                             .padding(.horizontal, 20)
                             .padding(.top, 20)
