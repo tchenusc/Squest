@@ -23,8 +23,9 @@ class FriendsViewModel: ObservableObject {
         Friend(name: "Request User 2", username: "@req2", lastActive: "3h ago", onQuest: nil, profileInitials: "RU", level: 14)
     ]
 
-    @Published var selectedFilter: FriendFilter = .myFriends // New: My Friends, Requests
-    @Published var requestsCount: Int = 2 // Dummy count for requests
+    @Published var selectedFilter: FriendFilter = .myFriends
+    @Published var requestsCount: Int = 2
+    @Published var animatingRequestId: UUID? = nil
 
     var displayedFriends: [Friend] {
         switch selectedFilter {
@@ -43,6 +44,41 @@ class FriendsViewModel: ObservableObject {
             return requests.count
         }
     }
+    
+    func confirmRequest(_ friend: Friend) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            animatingRequestId = friend.id
+        }
+        
+        // Delay the actual removal to allow animation to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            if let index = self.requests.firstIndex(where: { $0.id == friend.id }) {
+                let confirmedFriend = self.requests.remove(at: index)
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    self.friends.append(confirmedFriend)
+                    self.requestsCount = self.requests.count
+                    self.animatingRequestId = nil
+                }
+            }
+        }
+    }
+    
+    func denyRequest(_ friend: Friend) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            animatingRequestId = friend.id
+        }
+        
+        // Delay the actual removal to allow animation to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            if let index = self.requests.firstIndex(where: { $0.id == friend.id }) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    self.requests.remove(at: index)
+                    self.requestsCount = self.requests.count
+                    self.animatingRequestId = nil
+                }
+            }
+        }
+    }
 }
 
 enum FriendFilter: String, CaseIterable, Identifiable {
@@ -51,7 +87,6 @@ enum FriendFilter: String, CaseIterable, Identifiable {
 
     var id: String { self.rawValue }
 }
-
 
 struct FriendsView: View {
     @StateObject private var viewModel = FriendsViewModel()
@@ -75,63 +110,55 @@ struct FriendsView: View {
                 }
                 .padding(.bottom, 20)
 
-                HStack { // New HStack to center the segmented control
+                HStack {
                     Spacer()
-                    ZStack(alignment: .leading) { // ZStack to layer background and indicator
-                        // The faint grey background for the whole segmented control
+                    ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color(red: 240/255, green: 240/255, blue: 245/255))
 
-                        // The animated indicator (positioned behind the buttons)
-                        RoundedRectangle(cornerRadius: 15) // Corner radius for the indicator itself
-                            .fill(Color.white) // Change selected background to white
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(Color.white)
                             .frame(width: selectedIndicatorWidth, height: indicatorHeight)
                             .offset(x: selectedIndicatorXOffset, y: 0)
 
                         HStack(spacing: 0) {
                             FilterButton(title: "My Friends", isSelected: viewModel.selectedFilter == .myFriends) {
-                                withAnimation(.spring()) { // Use spring animation
+                                withAnimation(.spring()) {
                                     viewModel.selectedFilter = .myFriends
                                 }
                             }
-                            .frame(maxWidth: .infinity) // Make button expand to fill available width
+                            .frame(maxWidth: .infinity)
                             .background(
                                 GeometryReader { geometry in
                                     Color.clear.onAppear { self.myFriendsButtonFrame = geometry.frame(in: .named("filter_control_space")) }
-                                    .onChange(of: viewModel.selectedFilter) {
-                                        self.myFriendsButtonFrame = geometry.frame(in: .named("filter_control_space"))
-                                    }
                                 }
                             )
 
                             FilterButton(title: "Requests (\(viewModel.requestsCount))", isSelected: viewModel.selectedFilter == .requests) {
-                                withAnimation(.spring()) { // Use spring animation
+                                withAnimation(.spring()) {
                                     viewModel.selectedFilter = .requests
                                 }
                             }
-                            .frame(maxWidth: .infinity) // Make button expand to fill available width
+                            .frame(maxWidth: .infinity)
                             .background(
                                 GeometryReader { geometry in
                                     Color.clear.onAppear { self.requestsButtonFrame = geometry.frame(in: .named("filter_control_space")) }
-                                    .onChange(of: viewModel.selectedFilter) {
-                                        self.requestsButtonFrame = geometry.frame(in: .named("filter_control_space"))
-                                    }
                                 }
                             )
                         }
-                        .padding(8) // Padding for the buttons relative to the ZStack's background
+                        .padding(8)
                     }
-                    .frame(maxWidth: .infinity) // Make the ZStack fill available width
-                    .frame(height: 45) // Fixed height for the entire segmented control (8 + 40 + 8)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 45)
                     .cornerRadius(20)
-                    .coordinateSpace(name: "filter_control_space") // Name the coordinate space here
+                    .coordinateSpace(name: "filter_control_space")
                     Spacer()
                 }
-                .padding(.horizontal, 20) // Apply horizontal padding to the new HStack
+                .padding(.horizontal, 20)
                 .padding(.bottom, 25)
 
                 HStack(alignment: .center) {
-                    Text("Your Friends (\(viewModel.displayedFriendsCount))")
+                    Text(viewModel.selectedFilter == .myFriends ? "Your Friends (\(viewModel.displayedFriendsCount))" : "Friend Requests (\(viewModel.displayedFriendsCount))")
                         .font(.headline)
                         .fontWeight(.bold)
                         .padding(.leading, 20)
@@ -139,7 +166,6 @@ struct FriendsView: View {
                     Spacer()
 
                     Button(action: {
-                        // Add New action
                         print("Add New Friend")
                     }) {
                         HStack(spacing: 4) {
@@ -156,8 +182,27 @@ struct FriendsView: View {
 
                 ScrollView {
                     VStack(spacing: 12) {
-                        ForEach(viewModel.displayedFriends) { friend in
-                            FriendRow(friend: friend)
+                        if viewModel.selectedFilter == .requests && viewModel.requests.isEmpty {
+                            VStack(spacing: 8) {
+                                Image(systemName: "person.badge.plus")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(Color(white: 0.7))
+                                Text("No Friend Requests")
+                                    .font(.headline)
+                                    .foregroundColor(Color(white: 0.5))
+                                Text("When someone sends you a friend request, it will appear here")
+                                    .font(.subheadline)
+                                    .foregroundColor(Color(white: 0.5))
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 40)
+                        } else {
+                            ForEach(viewModel.displayedFriends) { friend in
+                                FriendRow(friend: friend, viewModel: viewModel)
+                                    .opacity(viewModel.animatingRequestId == friend.id ? 0 : 1)
+                                    .offset(x: viewModel.animatingRequestId == friend.id ? 50 : 0)
+                            }
                         }
                     }
                     .padding(.horizontal, 20)
@@ -169,18 +214,15 @@ struct FriendsView: View {
         }
     }
 
-    // Computed properties for indicator animation
     var selectedIndicatorWidth: CGFloat {
         viewModel.selectedFilter == .myFriends ? myFriendsButtonFrame.width : requestsButtonFrame.width
     }
 
     var indicatorHeight: CGFloat {
-        // Assuming both buttons have the same height
         myFriendsButtonFrame.height
     }
 
     var selectedIndicatorXOffset: CGFloat {
-        // The minX of the selected button relative to its parent HStack
         let selectedFrame = viewModel.selectedFilter == .myFriends ? myFriendsButtonFrame : requestsButtonFrame
         return selectedFrame.minX
     }
@@ -199,16 +241,16 @@ struct FilterButton: View {
                 .foregroundColor(isSelected ? .black : Color(red: 0.4, green: 0.4, blue: 0.4))
                 .padding(.vertical, 8)
                 .padding(.horizontal, 0)
-                .background(Color.clear) // Make background clear, as it will be animated separately
-                .cornerRadius(20) // Keep the corner radius for text alignment
-                .shadow(color: .clear, radius: 0, x: 0, y: 0)
+                .background(Color.clear)
+                .cornerRadius(20)
         }
     }
 }
 
 struct FriendRow: View {
     let friend: Friend
-
+    @ObservedObject var viewModel: FriendsViewModel
+    
     var body: some View {
         HStack(spacing: 15) {
             ZStack {
@@ -223,46 +265,73 @@ struct FriendRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .center) {
-                    Text(friend.name)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.black)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(friend.name)
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.black)
+                        
+                        if viewModel.selectedFilter == .requests {
+                            Text(friend.username)
+                                .font(.subheadline)
+                                .foregroundColor(Color(white: 0.4))
+                        }
+                    }
                     
                     Spacer()
                     
-                    Image(systemName: "trophy.fill")
-                        .foregroundColor(.yellow)
-                        .font(.system(size: 15))
-                    Text("Lvl \(friend.level)")
-                        .font(.subheadline)
-                        .foregroundColor(Color(white: 0.4))
+                    if viewModel.selectedFilter == .myFriends {
+                        Image(systemName: "trophy.fill")
+                            .foregroundColor(.yellow)
+                            .font(.system(size: 15))
+                        Text("Lvl \(friend.level)")
+                            .font(.subheadline)
+                            .foregroundColor(Color(white: 0.4))
+                    }
                 }
 
-                HStack(spacing: 4) {
-                    Text("Active \(friend.lastActive)")
-                        .font(.caption2)
-                        .foregroundColor(Color(white: 0.4))
-                    
-                    if let quest = friend.onQuest {
-                        Text("•")
+                if viewModel.selectedFilter == .myFriends {
+                    HStack(spacing: 4) {
+                        Text("Active \(friend.lastActive)")
                             .font(.caption2)
                             .foregroundColor(Color(white: 0.4))
-                        Text("On quest: \(quest)")
-                            .font(.caption2)
-                            .foregroundColor(Color(red: 0.49, green: 0.4, blue: 0.82))
+                        
+                        if let quest = friend.onQuest {
+                            Text("•")
+                                .font(.caption2)
+                                .foregroundColor(Color(white: 0.4))
+                            Text("On quest: \(quest)")
+                                .font(.caption2)
+                                .foregroundColor(Color(red: 0.49, green: 0.4, blue: 0.82))
+                        }
+                    }
+                }
+            }
+            
+            if viewModel.selectedFilter == .requests {
+                HStack(spacing: 12) {
+                    Button(action: {
+                        viewModel.confirmRequest(friend)
+                    }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.system(size: 32))
+                    }
+                    
+                    Button(action: {
+                        viewModel.denyRequest(friend)
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                            .font(.system(size: 32))
                     }
                 }
             }
         }
-        .padding(.vertical, 15)
-        .padding(.horizontal, 20)
+        .padding()
         .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.gray.opacity(0.1), lineWidth: 1)
-        )
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
 
