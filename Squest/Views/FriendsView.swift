@@ -1,15 +1,5 @@
 import SwiftUI
 
-struct Friend: Identifiable {
-    let id = UUID()
-    let name: String
-    let username: String
-    let lastActive: String // e.g., "1h ago", "Just now", "2d ago"
-    let onQuest: String?
-    let profileInitials: String // e.g., "JR"
-    let level: Int
-}
-
 class FriendsViewModel: ObservableObject {
     @Published var friends: [Friend] = [
         Friend(name: "Jamie Rodriguez", username: "@jamier", lastActive: "1h ago", onQuest: "Morning Walk", profileInitials: "JR", level: 24),
