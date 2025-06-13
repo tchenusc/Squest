@@ -5,4 +5,16 @@
         <attribute name="time_started" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="user_id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
+    <entity name="FriendList" representedClassName="FriendList" syncable="YES" codeGenerationType="class">
+        <attribute name="lastActive" optional="YES" attributeType="String"/>
+        <attribute name="level" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="onQuest" optional="YES" attributeType="String"/>
+        <attribute name="profileInitals" optional="YES" attributeType="String"/>
+        <attribute name="username" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="FriendListMain" representedClassName="FriendListMain" syncable="YES" codeGenerationType="class">
+        <attribute name="curr_user_id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="dirty_bit" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+    </entity>
 </model>

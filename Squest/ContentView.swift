@@ -12,6 +12,7 @@ struct ContentView: View {
     
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var userProfile: UserProfile
+    @EnvironmentObject var friendsListViewModel: FriendsListViewModel
     
     // State for presenting the quest completion pop-up globally
     @State private var showCompletionPopUp: Bool = false
@@ -46,10 +47,12 @@ struct ContentView: View {
             .onAppear {
 #if DEBUG
                 printAllBackgroundData(context: viewContext, userId: userProfile.current_user_id)
+                printAllFriendListData(context: viewContext)
 #endif
                 // Call the user-specific seeding logic when the view appears and userProfile is available
                 if let userId = userProfile.current_user_id {
                     seedBackgroundDataForUser(context: viewContext, userId: userId)
+                    setCurrentUserFriendList(context: viewContext, userId: userId, friendsListViewModel: friendsListViewModel)
                 }
             }
             // Apply blur and disable interaction to the content behind the pop-up
@@ -136,10 +139,88 @@ func seedBackgroundDataForUser(context: NSManagedObjectContext, userId: UUID) {
     }
 }
 
+func printAllFriendListData(context: NSManagedObjectContext) {
+    print("\n---- FriendListMain entries ----")
+    let mainRequest: NSFetchRequest<FriendListMain> = FriendListMain.fetchRequest()
+    do {
+        let results = try context.fetch(mainRequest)
+        if results.isEmpty {
+            print("No FriendListMain records found.")
+        } else {
+            for data in results {
+                print("curr_user_id: \(data.curr_user_id?.uuidString ?? "nil"), dirty_bit: \(data.dirty_bit?.uuidString ?? "nil")")
+            }
+        }
+    } catch {
+        print("❌ Failed to fetch FriendListMain: \(error)")
+    }
+    print("-------------------------------")
+
+    print("\n---- FriendList entries ----")
+    let friendRequest: NSFetchRequest<FriendList> = FriendList.fetchRequest()
+    do {
+        let results = try context.fetch(friendRequest)
+        if results.isEmpty {
+            print("No FriendList records found.")
+        } else {
+            for data in results {
+                print("name: \(data.name ?? "nil"), username: \(data.username ?? "nil"), lastActive: \(data.lastActive ?? "nil"), onQuest: \(data.onQuest ?? "nil"), profileInitials: \(data.profileInitals ?? "nil"), level: \(data.level)")
+            }
+        }
+    } catch {
+        print("❌ Failed to fetch FriendList: \(error)")
+    }
+    print("-------------------------------\n")
+}
+
+// Function to set the curr_user_id of the first FriendListMain object
+func setCurrentUserFriendList(context: NSManagedObjectContext, userId: UUID, friendsListViewModel: FriendsListViewModel) {
+    let request: NSFetchRequest<FriendListMain> = FriendListMain.fetchRequest()
+    request.fetchLimit = 1
+
+    do {
+        let results = try context.fetch(request)
+
+        if let friendListMain = results.first {
+            friendListMain.curr_user_id = userId
+
+            Task {
+                let initialDirtyBit = friendListMain.dirty_bit
+                let isSame = await friendsListViewModel.checkIfDirtyBitSame(oldDirtyBit: initialDirtyBit, for: userId)
+
+                if !isSame {
+                    let newBit = await friendsListViewModel.dirtyBit
+                    await MainActor.run {
+                        friendListMain.dirty_bit = newBit
+                    }
+                    await friendsListViewModel.loadFriends(for: userId)
+                } else {
+                    print("ℹ️ FriendListMain: Dirty bit is up-to-date. No data refresh needed.")
+                }
+
+                await MainActor.run {
+                    do {
+                        try context.save()
+                    } catch {
+                        print("❌ Failed to save FriendListMain after update: \(error)")
+                    }
+                }
+            }
+        } else {
+            print("ℹ️ No FriendListMain object found to set curr_user_id. Please ensure it's seeded.")
+        }
+    } catch {
+        print("❌ Error fetching FriendListMain to set curr_user_id: \(error)")
+    }
+}
+
+
+
 #Preview {
     let tempUser = UserProfile(userId: UUID(), email: "previewTest@mail.com")
     ContentView()
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
         .environmentObject(tempUser) // Provide a UserProfile with a UUID for preview
         .environmentObject(AuthViewModel(userProfile: tempUser))
+        .environmentObject(FriendsListViewModel())
 }

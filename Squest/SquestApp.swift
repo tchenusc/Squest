@@ -23,7 +23,7 @@ struct SquestApp: App {
         _friendsListViewModel = StateObject(wrappedValue: FriendsListViewModel())
         
         //clearCoreData(context: persistenceController.container.viewContext)
-        //seedIfNeeded(context: persistenceController.container.viewContext)
+        seedFriendListMainIfNeeded(context: persistenceController.container.viewContext)
         printAllBackgroundData(context: persistenceController.container.viewContext)
     }
     
@@ -43,13 +43,6 @@ struct SquestApp: App {
             }
             .onAppear {
                 authViewModel.restoreSession()
-            }
-            .onChange(of: userProfile.current_user_id) { _, newUserId in
-                if let userId = newUserId {
-                    Task {
-                        await friendsListViewModel.loadFriends(for: userId)
-                    }
-                }
             }
         }
     }
@@ -97,6 +90,32 @@ struct SquestApp: App {
             }
         } catch {
             print("❌ Failed to fetch BackgroundData: \(error)")
+        }
+    }
+    
+    // Function for user-specific conditional seeding of FriendListMain
+    func seedFriendListMainIfNeeded(context: NSManagedObjectContext) {
+        let request: NSFetchRequest<FriendListMain> = FriendListMain.fetchRequest()
+
+        do {
+            let results = try context.fetch(request)
+
+            if results.isEmpty {
+                let friendListMain = FriendListMain(context: context)
+                friendListMain.curr_user_id = nil
+                friendListMain.dirty_bit = nil
+
+                do {
+                    try context.save()
+                    print("✅ Seeded initial FriendListMain.")
+                } catch {
+                    print("❌ Failed to seed FriendListMain: \(error)")
+                }
+            } else {
+                print("ℹ️ FriendListMain already exists, no seeding needed.")
+            }
+        } catch {
+            print("Error checking for existing FriendListMain: \(error)")
         }
     }
 }

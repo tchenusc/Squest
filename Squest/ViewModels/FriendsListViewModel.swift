@@ -15,6 +15,11 @@ struct FriendRecord: Decodable {
     let level: Int
 }
 
+// New Decodable struct for fetching only the dirty bit
+struct UserDirtyBitData: Decodable {
+    let friends_list_dirty_bit: UUID?
+}
+
 @MainActor
 class FriendsListViewModel: ObservableObject {
     @Published var friends: [Friend] = []
@@ -23,6 +28,7 @@ class FriendsListViewModel: ObservableObject {
     @Published var friendsCount: Int = 0
     @Published var requestsCount: Int = 0
     @Published var animatingRequestId: UUID? = nil
+    @Published var dirtyBit: UUID? = nil
 
     private var client = SupabaseManager.shared.client
 
@@ -58,6 +64,40 @@ class FriendsListViewModel: ObservableObject {
 
         } catch {
             print("Failed to load friends: \(error)")
+        }
+    }
+
+    func clear() {
+        friends = []
+        requests = []
+        selectedFilter = .myFriends
+        friendsCount = 0
+        requestsCount = 0
+        animatingRequestId = nil
+        dirtyBit = nil
+    }
+    
+    func checkIfDirtyBitSame(oldDirtyBit: UUID?, for currentUserId: UUID) async -> Bool {
+        do {
+            let response = try await client
+                .from("user_data")
+                .select("friends_list_dirty_bit")
+                .eq("user_id", value: currentUserId.uuidString)
+                .limit(1)
+                .execute()
+
+            let userData = try JSONDecoder().decode([UserDirtyBitData].self, from: response.data)
+
+            if let fetchedDirtyBit = userData.first?.friends_list_dirty_bit {
+                dirtyBit = fetchedDirtyBit
+                return oldDirtyBit == fetchedDirtyBit
+            } else {
+                print("No friends_list_dirty_bit found for user: \(currentUserId.uuidString)")
+                return false // Or handle as appropriate if no dirty bit implies a change
+            }
+        } catch {
+            print("❌ Failed to check dirty bit: \(error)")
+            return false
         }
     }
 
