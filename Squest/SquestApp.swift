@@ -13,12 +13,14 @@ struct SquestApp: App {
     let persistenceController = PersistenceController.shared
     @StateObject var userProfile: UserProfile
     @StateObject private var authViewModel: AuthViewModel
+    @StateObject private var friendsListViewModel: FriendsListViewModel
     
     init() {
         // Seed data on app launch if needed
         let userProfile = UserProfile(userId: nil, email: "test@mail.com")
         _userProfile = StateObject(wrappedValue: userProfile)
         _authViewModel = StateObject(wrappedValue: AuthViewModel(userProfile: userProfile))
+        _friendsListViewModel = StateObject(wrappedValue: FriendsListViewModel())
         
         //clearCoreData(context: persistenceController.container.viewContext)
         //seedIfNeeded(context: persistenceController.container.viewContext)
@@ -33,6 +35,7 @@ struct SquestApp: App {
                         .environment(\.managedObjectContext, persistenceController.container.viewContext)
                         .environmentObject(userProfile)
                         .environmentObject(authViewModel)
+                        .environmentObject(friendsListViewModel)
                 } else {
                     WelcomeView()
                         .environmentObject(authViewModel)
@@ -40,6 +43,13 @@ struct SquestApp: App {
             }
             .onAppear {
                 authViewModel.restoreSession()
+            }
+            .onChange(of: userProfile.current_user_id) { _, newUserId in
+                if let userId = newUserId {
+                    Task {
+                        await friendsListViewModel.loadFriends(for: userId)
+                    }
+                }
             }
         }
     }
