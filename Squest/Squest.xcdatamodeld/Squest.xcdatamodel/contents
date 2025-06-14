@@ -8,9 +8,10 @@
     <entity name="FriendList" representedClassName="FriendList" syncable="YES" codeGenerationType="class">
         <attribute name="lastActive" optional="YES" attributeType="String"/>
         <attribute name="level" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="listType" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="onQuest" optional="YES" attributeType="String"/>
-        <attribute name="profileInitals" optional="YES" attributeType="String"/>
+        <attribute name="profileInitials" optional="YES" attributeType="String"/>
         <attribute name="username" optional="YES" attributeType="String"/>
     </entity>
     <entity name="FriendListMain" representedClassName="FriendListMain" syncable="YES" codeGenerationType="class">

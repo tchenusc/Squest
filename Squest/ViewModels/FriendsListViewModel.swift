@@ -1,6 +1,8 @@
 import Foundation
 import Supabase
 import Combine
+import SwiftUI
+import CoreData
 
 // MARK: - Decodable Structs for Supabase Response
 
@@ -29,6 +31,25 @@ class FriendsListViewModel: ObservableObject {
     @Published var requestsCount: Int = 0
     @Published var animatingRequestId: UUID? = nil
     @Published var dirtyBit: UUID? = nil
+
+    // Computed properties to match the original FriendsViewModel's functionality
+    var displayedFriends: [Friend] {
+        switch selectedFilter {
+        case .myFriends:
+            return friends
+        case .requests:
+            return requests
+        }
+    }
+
+    var displayedFriendsCount: Int {
+        switch selectedFilter {
+        case .myFriends:
+            return friendsCount
+        case .requests:
+            return requestsCount
+        }
+    }
 
     private var client = SupabaseManager.shared.client
 
@@ -101,6 +122,67 @@ class FriendsListViewModel: ObservableObject {
         }
     }
 
+    // New methods to handle friend request actions
+    func confirmRequest(_ friend: Friend, currentUserId: UUID) async {
+        let friendId = friend.id
+        withAnimation(.easeInOut(duration: 0.3)) {
+            self.animatingRequestId = friendId
+        }
+
+        // Delay the actual removal to allow animation to complete
+        // Then perform Supabase update and refresh
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            Task { @MainActor in
+                do {
+                    // Update the status in friends_table to 'accepted'
+                    _ = try await self.client.from("friends_table")
+                        .update(["status": "accepted"])
+                        .eq("user_id1", value: friendId.uuidString)
+                        .eq("user_id2", value: currentUserId.uuidString)
+                        .execute()
+
+                    // Refresh friend list from server
+                    await self.loadFriends(for: currentUserId)
+                    print("✅ Confirmed friend request for \(friend.name).")
+
+                } catch {
+                    print("❌ Failed to confirm request: \(error)")
+                }
+                self.animatingRequestId = nil
+            }
+        }
+    }
+
+    func denyRequest(_ friend: Friend, currentUserId: UUID) async {
+        let friendId = friend.id
+        withAnimation(.easeInOut(duration: 0.3)) {
+            self.animatingRequestId = friendId
+        }
+
+        // Delay the actual removal to allow animation to complete
+        // Then perform Supabase deletion and refresh
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            Task { @MainActor in
+                do {
+                    // Delete the request from friends_table
+                    _ = try await self.client.from("friends_table")
+                        .delete()
+                        .eq("user_id1", value: friendId.uuidString)
+                        .eq("user_id2", value: currentUserId.uuidString)
+                        .execute()
+
+                    // Refresh friend list from server
+                    await self.loadFriends(for: currentUserId)
+                    print("✅ Denied friend request for \(friend.name).")
+
+                } catch {
+                    print("❌ Failed to deny request: \(error)")
+                }
+                self.animatingRequestId = nil
+            }
+        }
+    }
+
     private func createFriend(from record: FriendRecord) -> Friend {
         let displayedName = record.displayed_name
         let username = record.username
@@ -146,6 +228,146 @@ class FriendsListViewModel: ObservableObject {
             return String(firstChar).uppercased()
         } else {
             return "?"
+        }
+    }
+
+    // MARK: - Core Data Update Function
+    /// Updates the Core Data FriendList entity with the current friends and requests.
+    /// This function first clears all existing FriendList entries and then recreates them.
+    /// - Parameter context: The NSManagedObjectContext to perform Core Data operations on.
+    func updateCoreDataFriendList(context: NSManagedObjectContext) async {
+        // Delete existing FriendList objects to avoid duplicates and reflect current state
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = FriendList.fetchRequest()
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+
+        do {
+            try context.execute(deleteRequest)
+            print("✅ Cleared existing FriendList Core Data entries.")
+        } catch {
+            print("❌ Failed to clear existing FriendList Core Data entries: \(error.localizedDescription)")
+            // Continue to attempt adding new data even if clearing fails
+        }
+
+        // Add current friends
+        for friend in self.friends {
+            let newFriend = FriendList(context: context)
+            newFriend.name = friend.name
+            newFriend.username = friend.username
+            newFriend.lastActive = friend.lastActive
+            newFriend.onQuest = friend.onQuest
+            newFriend.profileInitials = friend.profileInitials
+            newFriend.level = Int64(friend.level)
+            newFriend.listType = "friend" // New attribute for list type
+        }
+
+        // Add current requests
+        for request in self.requests {
+            let newRequest = FriendList(context: context)
+            newRequest.name = request.name
+            newRequest.username = request.username
+            newRequest.lastActive = request.lastActive
+            newRequest.onQuest = request.onQuest
+            newRequest.profileInitials = request.profileInitials
+            newRequest.level = Int64(request.level)
+            newRequest.listType = "request" // New attribute for list type
+        }
+
+        await MainActor.run {
+            do {
+                try context.save()
+                print("✅ Successfully updated FriendList Core Data with current friends and requests.")
+            } catch {
+                print("❌ Failed to save FriendList Core Data: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Function to set the curr_user_id of the first FriendListMain object and manage friend data loading.
+    /// - Parameters:
+    ///   - context: The NSManagedObjectContext to perform Core Data operations on.
+    ///   - userId: The current user's UUID.
+    ///   - firstRun: A boolean indicating if this is the initial run, defaults to true.
+    func setCurrentUserFriendList(context: NSManagedObjectContext, userId: UUID, firstRun: Bool = true) async {
+        let request: NSFetchRequest<FriendListMain> = FriendListMain.fetchRequest()
+        request.fetchLimit = 1
+
+        do {
+            let results = try context.fetch(request)
+
+            if let friendListMain = results.first {
+                friendListMain.curr_user_id = userId
+
+                let initialDirtyBit = friendListMain.dirty_bit
+                let isSame = await self.checkIfDirtyBitSame(oldDirtyBit: initialDirtyBit, for: userId)
+
+                if !isSame {
+                    await MainActor.run {
+                        friendListMain.dirty_bit = dirtyBit
+                    }
+                    await self.loadFriends(for: userId)
+                    // After loading friends, update Core Data
+                    await self.updateCoreDataFriendList(context: context)
+                } else {
+                    // Only load from Core Data if it's the first run and dirty bit is same
+                    if firstRun {
+                        self.loadFriendsFromCoreData(context: context)
+                    }
+                    print("ℹ️ FriendListMain: Dirty bit is up-to-date. No data refresh needed.")
+                }
+
+                await MainActor.run {
+                    do {
+                        try context.save()
+                    } catch {
+                        print("❌ Failed to save FriendListMain after update: \(error)")
+                    }
+                }
+            } else {
+                print("ℹ️ No FriendListMain object found to set curr_user_id. Please ensure it's seeded.")
+            }
+        } catch {
+            print("❌ Error fetching FriendListMain to set curr_user_id: \(error)")
+        }
+    }
+}
+
+extension FriendsListViewModel {
+    /// Loads friends and requests from Core Data and populates the ViewModel's arrays.
+    /// - Parameter context: The NSManagedObjectContext to perform Core Data operations on.
+    func loadFriendsFromCoreData(context: NSManagedObjectContext) {
+        let fetchRequest: NSFetchRequest<FriendList> = FriendList.fetchRequest()
+
+        do {
+            let coreDataFriends = try context.fetch(fetchRequest)
+
+            var fetchedFriends: [Friend] = []
+            var fetchedRequests: [Friend] = []
+
+            for coreDataFriend in coreDataFriends {
+                let friend = Friend(
+                    name: coreDataFriend.name ?? "Unknown",
+                    username: coreDataFriend.username ?? "@unknown",
+                    lastActive: coreDataFriend.lastActive ?? "",
+                    onQuest: coreDataFriend.onQuest,
+                    profileInitials: coreDataFriend.profileInitials ?? "?",
+                    level: Int(coreDataFriend.level)
+                )
+
+                if coreDataFriend.listType == "friend" {
+                    fetchedFriends.append(friend)
+                } else if coreDataFriend.listType == "request" {
+                    fetchedRequests.append(friend)
+                }
+            }
+            
+            self.friends = fetchedFriends
+            self.requests = fetchedRequests
+            self.friendsCount = fetchedFriends.count
+            self.requestsCount = fetchedRequests.count
+
+            print("✅ Successfully loaded friends and requests from Core Data.")
+        } catch {
+            print("❌ Failed to load friends from Core Data: \(error.localizedDescription)")
         }
     }
 }

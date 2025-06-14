@@ -1,76 +1,5 @@
 import SwiftUI
 
-class FriendsViewModel: ObservableObject {
-    @Published var friends: [Friend] = [
-        Friend(name: "Jamie Rodriguez", username: "@jamier", lastActive: "1h ago", onQuest: "Morning Walk", profileInitials: "JR", level: 24),
-        Friend(name: "Taylor Patel", username: "@taylorp", lastActive: "2d ago", onQuest: nil, profileInitials: "TP", level: 19),
-        Friend(name: "Casey Williams", username: "@caseyw", lastActive: "Just now", onQuest: "Digital Detox", profileInitials: "CW", level: 21),
-        Friend(name: "Riley Garcia", username: "@rileyg", lastActive: "5h ago", onQuest: nil, profileInitials: "RG", level: 17)
-    ]
-
-    @Published var requests: [Friend] = [
-        Friend(name: "Request User 1", username: "@req1", lastActive: "1d ago", onQuest: nil, profileInitials: "RU", level: 10),
-        Friend(name: "Request User 2", username: "@req2", lastActive: "3h ago", onQuest: nil, profileInitials: "RU", level: 14)
-    ]
-
-    @Published var selectedFilter: FriendFilter = .myFriends
-    @Published var requestsCount: Int = 2
-    @Published var animatingRequestId: UUID? = nil
-
-    var displayedFriends: [Friend] {
-        switch selectedFilter {
-        case .myFriends:
-            return friends
-        case .requests:
-            return requests
-        }
-    }
-
-    var displayedFriendsCount: Int {
-        switch selectedFilter {
-        case .myFriends:
-            return friends.count
-        case .requests:
-            return requests.count
-        }
-    }
-    
-    func confirmRequest(_ friend: Friend) {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            animatingRequestId = friend.id
-        }
-        
-        // Delay the actual removal to allow animation to complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            if let index = self.requests.firstIndex(where: { $0.id == friend.id }) {
-                let confirmedFriend = self.requests.remove(at: index)
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    self.friends.append(confirmedFriend)
-                    self.requestsCount = self.requests.count
-                    self.animatingRequestId = nil
-                }
-            }
-        }
-    }
-    
-    func denyRequest(_ friend: Friend) {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            animatingRequestId = friend.id
-        }
-        
-        // Delay the actual removal to allow animation to complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            if let index = self.requests.firstIndex(where: { $0.id == friend.id }) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    self.requests.remove(at: index)
-                    self.requestsCount = self.requests.count
-                    self.animatingRequestId = nil
-                }
-            }
-        }
-    }
-}
-
 enum FriendFilter: String, CaseIterable, Identifiable {
     case myFriends = "My Friends"
     case requests = "Requests"
@@ -79,7 +8,9 @@ enum FriendFilter: String, CaseIterable, Identifiable {
 }
 
 struct FriendsView: View {
-    @StateObject private var viewModel = FriendsViewModel()
+    @EnvironmentObject var viewModel: FriendsListViewModel
+    @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject var userProfile: UserProfile
     @State private var myFriendsButtonFrame: CGRect = .zero
     @State private var requestsButtonFrame: CGRect = .zero
 
@@ -202,6 +133,14 @@ struct FriendsView: View {
             .navigationBarHidden(true)
             .background(Color(red: 250/255, green: 250/255, blue: 252/255))
         }
+        .onAppear {
+            viewModel.selectedFilter = .myFriends
+            if let userId = userProfile.current_user_id {
+                Task { @MainActor in
+                    await viewModel.setCurrentUserFriendList(context: viewContext, userId: userId, firstRun: false)
+                }
+            }
+        }
     }
 
     var selectedIndicatorWidth: CGFloat {
@@ -239,7 +178,8 @@ struct FilterButton: View {
 
 struct FriendRow: View {
     let friend: Friend
-    @ObservedObject var viewModel: FriendsViewModel
+    @ObservedObject var viewModel: FriendsListViewModel
+    @EnvironmentObject var userProfile: UserProfile
     
     var body: some View {
         HStack(spacing: 15) {
@@ -301,7 +241,11 @@ struct FriendRow: View {
             if viewModel.selectedFilter == .requests {
                 HStack(spacing: 12) {
                     Button(action: {
-                        viewModel.confirmRequest(friend)
+                        Task { @MainActor in
+                            if let currentUserId = userProfile.current_user_id {
+                                await viewModel.confirmRequest(friend, currentUserId: currentUserId)
+                            }
+                        }
                     }) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
@@ -309,7 +253,11 @@ struct FriendRow: View {
                     }
                     
                     Button(action: {
-                        viewModel.denyRequest(friend)
+                        Task { @MainActor in
+                            if let currentUserId = userProfile.current_user_id {
+                                await viewModel.denyRequest(friend, currentUserId: currentUserId)
+                            }
+                        }
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.red)

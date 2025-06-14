@@ -52,7 +52,10 @@ struct ContentView: View {
                 // Call the user-specific seeding logic when the view appears and userProfile is available
                 if let userId = userProfile.current_user_id {
                     seedBackgroundDataForUser(context: viewContext, userId: userId)
-                    setCurrentUserFriendList(context: viewContext, userId: userId, friendsListViewModel: friendsListViewModel)
+                    // Call the new method on the friendsListViewModel
+                    Task { @MainActor in
+                        await friendsListViewModel.setCurrentUserFriendList(context: viewContext, userId: userId)
+                    }
                 }
             }
             // Apply blur and disable interaction to the content behind the pop-up
@@ -164,7 +167,7 @@ func printAllFriendListData(context: NSManagedObjectContext) {
             print("No FriendList records found.")
         } else {
             for data in results {
-                print("name: \(data.name ?? "nil"), username: \(data.username ?? "nil"), lastActive: \(data.lastActive ?? "nil"), onQuest: \(data.onQuest ?? "nil"), profileInitials: \(data.profileInitals ?? "nil"), level: \(data.level)")
+                print("name: \(data.name ?? "nil"), username: \(data.username ?? "nil"), lastActive: \(data.lastActive ?? "nil"), onQuest: \(data.onQuest ?? "nil"), profileInitials: \(data.profileInitials ?? "nil"), level: \(data.level)")
             }
         }
     } catch {
@@ -172,49 +175,6 @@ func printAllFriendListData(context: NSManagedObjectContext) {
     }
     print("-------------------------------\n")
 }
-
-// Function to set the curr_user_id of the first FriendListMain object
-func setCurrentUserFriendList(context: NSManagedObjectContext, userId: UUID, friendsListViewModel: FriendsListViewModel) {
-    let request: NSFetchRequest<FriendListMain> = FriendListMain.fetchRequest()
-    request.fetchLimit = 1
-
-    do {
-        let results = try context.fetch(request)
-
-        if let friendListMain = results.first {
-            friendListMain.curr_user_id = userId
-
-            Task {
-                let initialDirtyBit = friendListMain.dirty_bit
-                let isSame = await friendsListViewModel.checkIfDirtyBitSame(oldDirtyBit: initialDirtyBit, for: userId)
-
-                if !isSame {
-                    let newBit = await friendsListViewModel.dirtyBit
-                    await MainActor.run {
-                        friendListMain.dirty_bit = newBit
-                    }
-                    await friendsListViewModel.loadFriends(for: userId)
-                } else {
-                    print("ℹ️ FriendListMain: Dirty bit is up-to-date. No data refresh needed.")
-                }
-
-                await MainActor.run {
-                    do {
-                        try context.save()
-                    } catch {
-                        print("❌ Failed to save FriendListMain after update: \(error)")
-                    }
-                }
-            }
-        } else {
-            print("ℹ️ No FriendListMain object found to set curr_user_id. Please ensure it's seeded.")
-        }
-    } catch {
-        print("❌ Error fetching FriendListMain to set curr_user_id: \(error)")
-    }
-}
-
-
 
 #Preview {
     let tempUser = UserProfile(userId: UUID(), email: "previewTest@mail.com")
