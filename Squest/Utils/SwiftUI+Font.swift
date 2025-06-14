@@ -17,5 +17,8 @@ extension Font {
     static func firaSansBold(s: CGFloat) -> Font {
         return Font.custom("FiraSans-Bold", size: s)
     }
+    static func albertSans(s: CGFloat) -> Font {
+        return Font.custom("AlbertSans-Regular", size: s)
+    }
 }
 

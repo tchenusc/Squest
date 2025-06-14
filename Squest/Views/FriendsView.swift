@@ -7,12 +7,156 @@ enum FriendFilter: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
+struct AddFriendView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var viewModel: FriendsListViewModel
+    @EnvironmentObject var userProfile: UserProfile
+    @State private var username: String = ""
+    @State private var errorMessage: String?
+    @State private var isLoading = false
+    @FocusState private var isTextFieldFocused: Bool
+    
+    let accentPurple = Color(red: 102/255, green: 51/255, blue: 153/255) // A deep purple
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.white // Changed to white background
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    // Header Section
+                    VStack(spacing: 5) {
+                        Image("addFriendImg") // Using the new image asset
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 200, height: 200) // Adjust frame as needed
+                            .padding(.bottom, 10)
+                        
+                        Text("Add New Friend")
+                            .font(.albertSans(s: 24))
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                        
+                        Text("Enter username to send a request")
+                            .font(.albertSans(s: 16))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.top, 30)
+                    
+                    // Username Input Field
+                    HStack(spacing: 0) {
+                        Text("@")
+                            .font(.albertSans(s: 16))
+                            .foregroundColor(.gray)
+                            .padding(.leading, 12)
+                        
+                        TextField("Username", text: $username)
+                            .padding(12)
+                            .padding(.leading, 0) // Remove default leading padding for TextField
+                            .textInputAutocapitalization(.never)
+                            .disableAutocorrection(true)
+                            .font(.albertSans(s: 16))
+                            .onChange(of: username) { oldValue, newValue in
+                                if newValue.hasPrefix("@") {
+                                    username = String(newValue.dropFirst())
+                                }
+                            }
+                            .focused($isTextFieldFocused)
+                    }
+                    .background(Color.white)
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(isTextFieldFocused ? Color(red: 0.1, green: 0.5, blue: 0.7) : Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+                    
+                    // Error Message Display
+                    if let errorMessage = errorMessage {
+                        HStack(spacing: 5) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .foregroundColor(.red)
+                                .font(.albertSans(s: 12))
+                            Text(errorMessage)
+                                .foregroundColor(.red)
+                                .font(.albertSans(s: 12))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    
+                    // Send Request Button
+                    Button(action: {
+                        isTextFieldFocused = false // Dismiss keyboard
+                        Task {
+                            await sendRequest()
+                        }
+                    }) {
+                        HStack {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .padding(.trailing, 5)
+                            }
+                            Text("Send Request")
+                                .fontWeight(.medium)
+                                .font(.albertSans(s: 18))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(username.isEmpty || isLoading ? Color(red: 0.1, green: 0.5, blue: 0.7).opacity(0.6) : Color(red: 0.1, green: 0.5, blue: 0.7))
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    }
+                    .disabled(username.isEmpty || isLoading)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 25) // Overall horizontal padding
+            }
+            .navigationBarItems(trailing: Button("Cancel") {
+                isTextFieldFocused = false // Dismiss keyboard
+                dismiss()
+            }
+            .foregroundColor(accentPurple).font(.albertSans(s: 16)))
+        }
+    }
+    
+    private func sendRequest() async {
+        guard !username.isEmpty else { return }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            if let currentUserId = userProfile.current_user_id {
+                try await viewModel.sendFriendRequest(to: username, from: currentUserId)
+                dismiss()
+            }
+        } catch let error as NSError {
+            switch error.code {
+            case 404:
+                errorMessage = "User not found"
+            case 400:
+                errorMessage = "You are already friends with this user"
+            default:
+                errorMessage = "Failed to send friend request"
+            }
+        } catch {
+            errorMessage = "An unexpected error occurred"
+        }
+        
+        isLoading = false
+    }
+}
+
 struct FriendsView: View {
     @EnvironmentObject var viewModel: FriendsListViewModel
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var userProfile: UserProfile
     @State private var myFriendsButtonFrame: CGRect = .zero
     @State private var requestsButtonFrame: CGRect = .zero
+    @State private var showingAddFriend = false
 
     var body: some View {
         NavigationView {
@@ -87,7 +231,7 @@ struct FriendsView: View {
                     Spacer()
 
                     Button(action: {
-                        print("Add New Friend")
+                        showingAddFriend = true
                     }) {
                         HStack(spacing: 4) {
                             Image(systemName: "person.badge.plus")
@@ -132,6 +276,9 @@ struct FriendsView: View {
             }
             .navigationBarHidden(true)
             .background(Color(red: 250/255, green: 250/255, blue: 252/255))
+            .sheet(isPresented: $showingAddFriend) {
+                AddFriendView()
+            }
         }
         .onAppear {
             viewModel.selectedFilter = .myFriends
@@ -274,6 +421,23 @@ struct FriendRow: View {
 }
 
 #Preview {
-    FriendsView()
+    let previewUserProfile = UserProfile(userId: UUID(), email: "preview@example.com")
+    let previewFriendsListViewModel = FriendsListViewModel()
+    
+    // Populate with some dummy data for preview
+    previewFriendsListViewModel.friends = [
+        Friend(name: "Jamie Rodriguez", username: "@jamier", lastActive: "1h ago", onQuest: "Morning Walk", profileInitials: "JR", level: 24),
+        Friend(name: "Taylor Patel", username: "@taylorp", lastActive: "2d ago", onQuest: nil, profileInitials: "TP", level: 19)
+    ]
+    previewFriendsListViewModel.requests = [
+        Friend(name: "Request User 1", username: "@req1", lastActive: "1d ago", onQuest: nil, profileInitials: "RU", level: 10)
+    ]
+    previewFriendsListViewModel.friendsCount = previewFriendsListViewModel.friends.count
+    previewFriendsListViewModel.requestsCount = previewFriendsListViewModel.requests.count
+    
+    return FriendsView()
+        .environmentObject(previewFriendsListViewModel)
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        .environmentObject(previewUserProfile)
 } 
 

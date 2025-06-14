@@ -329,6 +329,65 @@ class FriendsListViewModel: ObservableObject {
             print("❌ Error fetching FriendListMain to set curr_user_id: \(error)")
         }
     }
+
+    func sendFriendRequest(to username: String, from currentUserId: UUID) async throws {
+        do {
+            // First, get the user ID for the given username
+            let response = try await client
+                .from("users")
+                .select("id")
+                .eq("username", value: username)
+                .limit(1)
+                .execute()
+            
+            let userData = try JSONDecoder().decode([UserData].self, from: response.data)
+            
+            guard let targetUserId = userData.first?.id else {
+                throw NSError(domain: "FriendsListViewModel", code: 404, userInfo: [NSLocalizedDescriptionKey: "User not found"])
+            }
+            
+            // Check if a friendship already exists
+            let existingResponse = try await client
+                .from("friends_table")
+                .select()
+                .or("user_id1.eq.\(currentUserId.uuidString),user_id2.eq.\(currentUserId.uuidString)")
+                .or("user_id1.eq.\(targetUserId.uuidString),user_id2.eq.\(targetUserId.uuidString)")
+                .execute()
+            
+            let existingFriendships = try JSONDecoder().decode([FriendshipData].self, from: existingResponse.data)
+            
+            if !existingFriendships.isEmpty {
+                throw NSError(domain: "FriendsListViewModel", code: 400, userInfo: [NSLocalizedDescriptionKey: "Friendship already exists"])
+            }
+            
+            // Create the friend request
+            _ = try await client
+                .from("friends_table")
+                .insert([
+                    "user_id1": currentUserId.uuidString,
+                    "user_id2": targetUserId.uuidString,
+                    "status": "pending"
+                ])
+                .execute()
+            
+            print("✅ Sent friend request to \(username)")
+            
+        } catch {
+            print("❌ Failed to send friend request: \(error)")
+            throw error
+        }
+    }
+    
+    // Helper structs for decoding
+    private struct UserData: Decodable {
+        let id: UUID
+    }
+    
+    private struct FriendshipData: Decodable {
+        let user_id1: UUID
+        let user_id2: UUID
+        let status: String
+    }
 }
 
 extension FriendsListViewModel {
