@@ -35,7 +35,7 @@ struct LeadershipView: View {
                     }
                 }
             }
-            .navigationTitle("Leadership")
+            .navigationTitle("Leaderboard")
         }
     }
 }

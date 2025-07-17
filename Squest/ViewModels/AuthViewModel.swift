@@ -66,6 +66,7 @@ class AuthViewModel: ObservableObject {
                 let response = try await client.auth.signIn(email: email, password: password)
                 verificationMessage = ""
                 let user = response.user
+                print (user.userMetadata)
                 let userId = user.id
                 userProfile.updateFromAuth(email: user.email ?? "", userId: userId, userMetadata: user.userMetadata)
                 isAuthenticated = true

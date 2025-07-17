@@ -388,6 +388,30 @@ class FriendsListViewModel: ObservableObject {
         let user_id2: UUID
         let status: String
     }
+
+    /// Search for users by username (partial match, case-insensitive)
+    func searchUsers(by username: String) async -> [SearchedUser] {
+        guard !username.isEmpty else { return [] }
+        do {
+            let response = try await client
+                .from("users")
+                .select("id, username, displayed_name")
+                .ilike("username", pattern: "%\(username)%")
+                .limit(10)
+                .execute()
+            let users = try JSONDecoder().decode([SearchedUser].self, from: response.data)
+            return users
+        } catch {
+            print("❌ Failed to search users: \(error)")
+            return []
+        }
+    }
+
+    struct SearchedUser: Identifiable, Decodable {
+        let id: UUID
+        let username: String
+        let displayed_name: String?
+    }
 }
 
 extension FriendsListViewModel {

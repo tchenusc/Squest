@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Supabase
 
 class UserProfile: ObservableObject {
     @Published var current_user_id: UUID?
@@ -20,8 +21,15 @@ class UserProfile: ObservableObject {
         self.email = email
         self.current_user_id = userId
         self.isAuthenticated = true
-        self.displayedName = userMetadata?["displayed_name"] as? String
-        self.username = userMetadata?["username"] as? String
+        if let metadata = userMetadata as? [String: AnyJSON] {
+            self.displayedName = metadata["displayed_name"]?.stringValue
+            self.username = metadata["username"]?.stringValue
+
+            //print("✅ displayedName:", self.displayedName ?? "nil")
+            //print("✅ username:", self.username ?? "nil")
+        } else {
+            print("❌ updating from auth")
+        }
     }
     
     func clear() {

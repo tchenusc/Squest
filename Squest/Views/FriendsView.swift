@@ -15,6 +15,8 @@ struct AddFriendView: View {
     @State private var errorMessage: String?
     @State private var isLoading = false
     @FocusState private var isTextFieldFocused: Bool
+    @State private var searchResults: [FriendsListViewModel.SearchedUser] = []
+    @State private var isSearching = false
     
     let accentPurple = Color(red: 102/255, green: 51/255, blue: 153/255) // A deep purple
     
@@ -27,23 +29,28 @@ struct AddFriendView: View {
                 VStack(spacing: 20) {
                     // Header Section
                     VStack(spacing: 5) {
-                        Image("addFriendImg") // Using the new image asset
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 200, height: 200) // Adjust frame as needed
-                            .padding(.bottom, 10)
-                        
+                        if !isTextFieldFocused {
+                            Image("addFriendImg") // Using the new image asset
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 200, height: 200) // Adjust frame as needed
+                                .padding(.bottom, 10)
+                                .transition(.opacity)
+                        }
                         Text("Add New Friend")
                             .font(.albertSans(s: 24))
                             .fontWeight(.medium)
                             .foregroundColor(.primary)
+                            .transition(.move(edge: .top).combined(with: .opacity))
                         
                         Text("Enter username to send a request")
                             .font(.albertSans(s: 16))
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
+                            .transition(.move(edge: .top).combined(with: .opacity))
                     }
                     .padding(.top, 30)
+                    .animation(.easeInOut(duration: 0.3), value: isTextFieldFocused)
                     
                     // Username Input Field
                     HStack(spacing: 0) {
@@ -62,6 +69,14 @@ struct AddFriendView: View {
                                 if newValue.hasPrefix("@") {
                                     username = String(newValue.dropFirst())
                                 }
+                                isSearching = !username.isEmpty
+                                Task {
+                                    if !username.isEmpty {
+                                        searchResults = await viewModel.searchUsers(by: username)
+                                    } else {
+                                        searchResults = []
+                                    }
+                                }
                             }
                             .focused($isTextFieldFocused)
                     }
@@ -71,6 +86,37 @@ struct AddFriendView: View {
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(isTextFieldFocused ? Color(red: 0.1, green: 0.5, blue: 0.7) : Color.gray.opacity(0.2), lineWidth: 1)
                     )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    // User search results
+                    if isSearching && !searchResults.isEmpty {
+                        VStack(alignment: .leading, spacing: 0) {
+                            ForEach(searchResults) { user in
+                                Button(action: {
+                                    username = user.username
+                                    isSearching = false
+                                    searchResults = []
+                                    isTextFieldFocused = false
+                                }) {
+                                    HStack {
+                                        Text(user.displayed_name ?? user.username)
+                                            .font(.albertSans(s: 16))
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        Text("@\(user.username)")
+                                            .font(.albertSans(s: 14))
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
+                                }
+                                .background(Color.gray.opacity(0.08))
+                            }
+                        }
+                        .background(Color.white)
+                        .cornerRadius(8)
+                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                        .padding(.top, 2)
+                    }
                     
                     // Error Message Display
                     if let errorMessage = errorMessage {
@@ -83,6 +129,20 @@ struct AddFriendView: View {
                                 .font(.albertSans(s: 12))
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .transition(.opacity)
+                    }
+                    // Self-friend error
+                    if !username.isEmpty, let myUsername = userProfile.username, username.lowercased() == myUsername.lowercased() {
+                        HStack(spacing: 5) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .foregroundColor(.red)
+                                .font(.albertSans(s: 12))
+                            Text("You cannot friend yourself.")
+                                .foregroundColor(.red)
+                                .font(.albertSans(s: 12))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .transition(.opacity)
                     }
                     
                     // Send Request Button
@@ -108,7 +168,8 @@ struct AddFriendView: View {
                         .foregroundColor(.white)
                         .cornerRadius(8)
                     }
-                    .disabled(username.isEmpty || isLoading)
+                    .disabled(username.isEmpty || isLoading || (userProfile.username != nil && username.lowercased() == userProfile.username!.lowercased()))
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                     
                     Spacer()
                 }
@@ -124,6 +185,13 @@ struct AddFriendView: View {
     
     private func sendRequest() async {
         guard !username.isEmpty else { return }
+        print(userProfile.username?.lowercased() as Any)
+        print(userProfile.displayedName as Any)
+        print(userProfile.email as Any)
+        if let myUsername = userProfile.username, username.lowercased() == myUsername.lowercased() {
+            errorMessage = "You cannot friend yourself."
+            return
+        }
         
         isLoading = true
         errorMessage = nil
@@ -166,7 +234,7 @@ struct FriendsView: View {
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .padding(.horizontal, 20)
-                        .padding(.top, 50)
+                        .padding(.top, 45)
 
                     Text("Adventure is better with friends")
                         .font(.subheadline)
