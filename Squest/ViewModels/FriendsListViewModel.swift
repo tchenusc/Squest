@@ -155,6 +155,9 @@ class FriendsListViewModel: ObservableObject {
                         .or(orCondition)
                         .execute()
 
+                    // Call the RPC for both users (only once, currentUserId and friendId)
+                    _ = try? await self.client.rpc("update_friends_list_dirty_bits", params: ["uid1": currentUserId.uuidString, "uid2": friendId.uuidString]).execute()
+
                     // Refresh friend list from server
                     await self.loadFriends(for: currentUserId)
                     print("✅ Confirmed friend request for \(friend.name).")
@@ -198,6 +201,13 @@ class FriendsListViewModel: ObservableObject {
                         .delete()
                         .or(orCondition)
                         .execute()
+
+                    // Call the RPC for both users (only once, currentUserId and friendId), print any error
+                    do {
+                        _ = try await self.client.rpc("update_friends_list_dirty_bits", params: ["uid1": currentUserId.uuidString, "uid2": friendId.uuidString]).execute()
+                    } catch {
+                        print("❌ RPC update_friends_list_dirty_bits failed: \(error)")
+                    }
 
                     // Refresh friend list from server
                     await self.loadFriends(for: currentUserId)
@@ -405,6 +415,9 @@ class FriendsListViewModel: ObservableObject {
                 .execute()
             
             print("✅ Sent friend request to \(username)")
+
+            // Call the RPC for both users (only once, currentUserId and targetUserId)
+            _ = try? await client.rpc("update_friends_list_dirty_bits", params: ["uid1": currentUserId.uuidString, "uid2": targetUserId.uuidString]).execute()
             
         } catch {
             print("❌ Failed to send friend request: \(error)")

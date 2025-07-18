@@ -12,7 +12,8 @@ struct AddFriendView: View {
     @EnvironmentObject var viewModel: FriendsListViewModel
     @EnvironmentObject var userProfile: UserProfile
     @State private var username: String = ""
-    @State private var errorMessage: String?
+    @State private var errorMessage: String? = nil
+    @State private var successMessage: String? = nil
     @State private var isLoading = false
     @FocusState private var isTextFieldFocused: Bool
     @State private var searchResults: [FriendsListViewModel.SearchedUser] = []
@@ -70,6 +71,8 @@ struct AddFriendView: View {
                                     username = String(newValue.dropFirst())
                                 }
                                 isSearching = !username.isEmpty
+                                errorMessage = nil
+                                successMessage = nil
                                 Task {
                                     if !username.isEmpty {
                                         searchResults = await viewModel.searchUsers(by: username)
@@ -118,7 +121,7 @@ struct AddFriendView: View {
                         .padding(.top, 2)
                     }
                     
-                    // Error Message Display
+                    // Error Message Display (local)
                     if let errorMessage = errorMessage {
                         HStack(spacing: 5) {
                             Image(systemName: "exclamationmark.circle.fill")
@@ -126,6 +129,19 @@ struct AddFriendView: View {
                                 .font(.albertSans(s: 12))
                             Text(errorMessage)
                                 .foregroundColor(.red)
+                                .font(.albertSans(s: 12))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .transition(.opacity)
+                    }
+                    // Success Message Display (local)
+                    if let successMessage = successMessage {
+                        HStack(spacing: 5) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.albertSans(s: 12))
+                            Text(successMessage)
+                                .foregroundColor(.green)
                                 .font(.albertSans(s: 12))
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -188,25 +204,27 @@ struct AddFriendView: View {
         
         if let myUsername = userProfile.username, username.lowercased() == myUsername.lowercased() {
             errorMessage = "You cannot friend yourself."
+            successMessage = nil
             return
         }
         
         isLoading = true
         errorMessage = nil
+        successMessage = nil
         
         do {
             if let currentUserId = userProfile.current_user_id {
                 try await viewModel.sendFriendRequest(to: username, from: currentUserId)
-                //dismiss()
+                successMessage = "Friend request sent to @\(username)!"
             }
         } catch let error as NSError {
             switch error.code {
             case 404:
                 errorMessage = "User not found"
             case 400:
-                errorMessage = "You are already friends with this user or you have a request pending"
+                errorMessage = error.localizedDescription
             default:
-                errorMessage = "Failed to send friend request"
+                errorMessage = error.localizedDescription
             }
         } catch {
             errorMessage = "An unexpected error occurred"
