@@ -124,9 +124,10 @@ class FriendsListViewModel: ObservableObject {
 
     // New methods to handle friend request actions
     func confirmRequest(_ friend: Friend, currentUserId: UUID) async {
-        let friendId = friend.id
+        // Remove leading '@' if present
+        let usernameToSearch = friend.username.hasPrefix("@") ? String(friend.username.dropFirst()) : friend.username
         withAnimation(.easeInOut(duration: 0.3)) {
-            self.animatingRequestId = friendId
+            self.animatingRequestId = friend.id
         }
 
         // Delay the actual removal to allow animation to complete
@@ -134,11 +135,24 @@ class FriendsListViewModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             Task { @MainActor in
                 do {
-                    // Update the status in friends_table to 'accepted'
+                    // Query the users table to get the id for the username
+                    let userResponse = try await self.client
+                        .from("users")
+                        .select("id")
+                        .eq("username", value: usernameToSearch)
+                        .limit(1)
+                        .execute()
+                    let userData = try JSONDecoder().decode([UserData].self, from: userResponse.data)
+                    guard let friendId = userData.first?.id else {
+                        print("❌ Could not find user id for username: \(usernameToSearch)")
+                        self.animatingRequestId = nil
+                        return
+                    }
+                    let orCondition = "and(user_id1.eq.\(currentUserId.uuidString),user_id2.eq.\(friendId.uuidString)),and(user_id1.eq.\(friendId.uuidString),user_id2.eq.\(currentUserId.uuidString))"
+                    // Update the status in friends_table to 'accepted' for either user_id1/user_id2 combination
                     _ = try await self.client.from("friends_table")
                         .update(["status": "accepted"])
-                        .eq("user_id1", value: friendId.uuidString)
-                        .eq("user_id2", value: currentUserId.uuidString)
+                        .or(orCondition)
                         .execute()
 
                     // Refresh friend list from server
@@ -154,9 +168,10 @@ class FriendsListViewModel: ObservableObject {
     }
 
     func denyRequest(_ friend: Friend, currentUserId: UUID) async {
-        let friendId = friend.id
+        // Remove leading '@' if present
+        let usernameToSearch = friend.username.hasPrefix("@") ? String(friend.username.dropFirst()) : friend.username
         withAnimation(.easeInOut(duration: 0.3)) {
-            self.animatingRequestId = friendId
+            self.animatingRequestId = friend.id
         }
 
         // Delay the actual removal to allow animation to complete
@@ -164,11 +179,24 @@ class FriendsListViewModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             Task { @MainActor in
                 do {
-                    // Delete the request from friends_table
+                    // Query the users table to get the id for the username
+                    let userResponse = try await self.client
+                        .from("users")
+                        .select("id")
+                        .eq("username", value: usernameToSearch)
+                        .limit(1)
+                        .execute()
+                    let userData = try JSONDecoder().decode([UserData].self, from: userResponse.data)
+                    guard let friendId = userData.first?.id else {
+                        print("❌ Could not find user id for username: \(usernameToSearch)")
+                        self.animatingRequestId = nil
+                        return
+                    }
+                    let orCondition = "and(user_id1.eq.\(currentUserId.uuidString),user_id2.eq.\(friendId.uuidString)),and(user_id1.eq.\(friendId.uuidString),user_id2.eq.\(currentUserId.uuidString))"
+                    // Delete the request from friends_table for either user_id1/user_id2 combination
                     _ = try await self.client.from("friends_table")
                         .delete()
-                        .eq("user_id1", value: friendId.uuidString)
-                        .eq("user_id2", value: currentUserId.uuidString)
+                        .or(orCondition)
                         .execute()
 
                     // Refresh friend list from server
@@ -331,6 +359,13 @@ class FriendsListViewModel: ObservableObject {
     }
 
     func sendFriendRequest(to username: String, from currentUserId: UUID) async throws {
+        // First, check local friends and requests arrays
+        if friends.contains(where: { $0.username == username }) {
+            throw NSError(domain: "FriendsListViewModel", code: 400, userInfo: [NSLocalizedDescriptionKey: "You are already friends with this user."])
+        }
+        if requests.contains(where: { $0.username == username }) {
+            throw NSError(domain: "FriendsListViewModel", code: 400, userInfo: [NSLocalizedDescriptionKey: "A friend request is already pending with this user."])
+        }
         do {
             // First, get the user ID for the given username
             let response = try await client
@@ -346,18 +381,17 @@ class FriendsListViewModel: ObservableObject {
                 throw NSError(domain: "FriendsListViewModel", code: 404, userInfo: [NSLocalizedDescriptionKey: "User not found"])
             }
             
-            // Check if a friendship already exists
+            // Check if a friend request already exists in either direction
             let existingResponse = try await client
                 .from("friends_table")
                 .select()
-                .or("user_id1.eq.\(currentUserId.uuidString),user_id2.eq.\(currentUserId.uuidString)")
-                .or("user_id1.eq.\(targetUserId.uuidString),user_id2.eq.\(targetUserId.uuidString)")
+                .or("and(user_id1.eq.\(currentUserId.uuidString),user_id2.eq.\(targetUserId.uuidString)),and(user_id1.eq.\(targetUserId.uuidString),user_id2.eq.\(currentUserId.uuidString))")
                 .execute()
             
             let existingFriendships = try JSONDecoder().decode([FriendshipData].self, from: existingResponse.data)
             
             if !existingFriendships.isEmpty {
-                throw NSError(domain: "FriendsListViewModel", code: 400, userInfo: [NSLocalizedDescriptionKey: "Friendship already exists"])
+                throw NSError(domain: "FriendsListViewModel", code: 400, userInfo: [NSLocalizedDescriptionKey: "A friend request or friendship already exists between these users."])
             }
             
             // Create the friend request

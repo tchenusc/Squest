@@ -185,9 +185,7 @@ struct AddFriendView: View {
     
     private func sendRequest() async {
         guard !username.isEmpty else { return }
-        print(userProfile.username?.lowercased() as Any)
-        print(userProfile.displayedName as Any)
-        print(userProfile.email as Any)
+        
         if let myUsername = userProfile.username, username.lowercased() == myUsername.lowercased() {
             errorMessage = "You cannot friend yourself."
             return
@@ -199,14 +197,14 @@ struct AddFriendView: View {
         do {
             if let currentUserId = userProfile.current_user_id {
                 try await viewModel.sendFriendRequest(to: username, from: currentUserId)
-                dismiss()
+                //dismiss()
             }
         } catch let error as NSError {
             switch error.code {
             case 404:
                 errorMessage = "User not found"
             case 400:
-                errorMessage = "You are already friends with this user"
+                errorMessage = "You are already friends with this user or you have a request pending"
             default:
                 errorMessage = "Failed to send friend request"
             }
