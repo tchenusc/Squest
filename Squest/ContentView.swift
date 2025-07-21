@@ -37,7 +37,7 @@ struct ContentView: View {
                     }
                 
                 NavigationView { // Wrap ProfileView in a NavigationView
-                    ProfileView()
+                    ProfileView(userProfile: userProfile)
                 }
                 .tabItem {
                     Label("Profile", systemImage: "person.circle.fill")

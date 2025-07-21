@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @ObservedObject var userProfile: UserProfile
     @State private var levelProgress: Double = 0.75 // Example progress value
     @State private var coins: Int = 1000 // Example coin amount
     @State private var showingCoinDescription: Bool = false // New state variable for pop-up
@@ -61,20 +62,29 @@ struct ProfileView: View {
                         VStack(spacing: 16) {
                             // Avatar with shadow and border
                             ZStack {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 100, height: 100)
-                                    .foregroundColor(.blue)
+                                AsyncImage(url: URL(string: userProfile.avatarUrl ?? "")) { image in
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 100, height: 100)
+                                        .clipShape(Circle())
+                                        .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                                } placeholder: {
+                                    Image(systemName: "person.circle.fill")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 100, height: 100)
+                                        .foregroundColor(.blue)
+                                }
                             }
                             
                             // Name and Username
                             VStack(spacing: 4) {
-                                Text("John Doe")
+                                Text(userProfile.displayedName ?? "User")
                                     .font(.system(size: 28, weight: .bold, design: .rounded))
                                     .foregroundColor(.black)
                                 
-                                Text("@johndoe")
+                                Text("@\(userProfile.username ?? "user")")
                                     .font(.system(size: 17, weight: .medium, design: .rounded))
                                     .foregroundColor(.secondary)
                             }
@@ -159,14 +169,24 @@ struct ProfileView: View {
                         .padding(.bottom, 24)
                     }
                     
-                    // NavigationLink for Settings Button positioned in top trailing corner
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.black)
-                            .padding(.top, 8)
-                            .padding(.trailing, 20)
+                    // Top right buttons (Edit and Settings)
+                    HStack(spacing: 8) {
+                        // Edit Button
+                        NavigationLink(destination: EditProfileView(userProfile: userProfile)) {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 24))
+                                .foregroundColor(.black)
+                        }
+                        
+                        // Settings Button
+                        NavigationLink(destination: SettingsView()) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.black)
+                        }
                     }
+                    .padding(.top, 8)
+                    .padding(.trailing, 20)
                 }
             }
             .background(Color(.systemGray6).opacity(0.5).ignoresSafeArea())
@@ -301,7 +321,7 @@ struct Triangle: Shape {
 
 #Preview {
     NavigationView {
-        ProfileView()
+        ProfileView(userProfile: UserProfile(displayedName: "John Doe", username: "johndoe", avatarUrl: "https://via.placeholder.com/150"))
     }
 }
 

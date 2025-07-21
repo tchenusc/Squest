@@ -11,6 +11,7 @@
 		41B224A62DF2156F00246012 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 41B224A52DF2156F00246012 /* PostgREST */; };
 		41B224A82DF2156F00246012 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 41B224A72DF2156F00246012 /* Realtime */; };
 		41B224AA2DF2156F00246012 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 41B224A92DF2156F00246012 /* Supabase */; };
+		41E3D31A2E2DB13B00016E5B /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 41E3D3192E2DB13B00016E5B /* Storage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 				41B224AA2DF2156F00246012 /* Supabase in Frameworks */,
 				41B224A82DF2156F00246012 /* Realtime in Frameworks */,
 				41B224A62DF2156F00246012 /* PostgREST in Frameworks */,
+				41E3D31A2E2DB13B00016E5B /* Storage in Frameworks */,
 				41B224A42DF2156F00246012 /* Auth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -57,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				411CBE7E2DEB748300588C9F /* Squest */,
+				41E3D3182E2DB13B00016E5B /* Frameworks */,
 				411CBE7D2DEB748300588C9F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -67,6 +70,13 @@
 				411CBE7C2DEB748300588C9F /* Squest.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		41E3D3182E2DB13B00016E5B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -93,6 +103,7 @@
 				41B224A52DF2156F00246012 /* PostgREST */,
 				41B224A72DF2156F00246012 /* Realtime */,
 				41B224A92DF2156F00246012 /* Supabase */,
+				41E3D3192E2DB13B00016E5B /* Storage */,
 			);
 			productName = Squest;
 			productReference = 411CBE7C2DEB748300588C9F /* Squest.app */;
@@ -389,6 +400,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 41B224A22DF2156F00246012 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		41E3D3192E2DB13B00016E5B /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 41B224A22DF2156F00246012 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
