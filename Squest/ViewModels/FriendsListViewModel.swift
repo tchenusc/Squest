@@ -58,20 +58,20 @@ class FriendsListViewModel: ObservableObject {
             async let responseA = client.rpc("get_accepted_friends_as_user1", params: ["current_user_id": currentUserId.uuidString]).execute()
             async let responseB = client.rpc("get_accepted_friends_as_user2", params: ["current_user_id": currentUserId.uuidString]).execute()
             async let responsePendingA = client.rpc("get_pending_requests_as_user2", params: ["current_user_id": currentUserId.uuidString]).execute()
-            async let responsePendingB = client.rpc("get_pending_requests_as_user1", params: ["current_user_id": currentUserId.uuidString]).execute()
+            //async let responsePendingB = client.rpc("get_pending_requests_as_user1", params: ["current_user_id": currentUserId.uuidString]).execute()
 
-            let (resA, resB, resPendingA, resPendingB) = try await (responseA, responseB, responsePendingA, responsePendingB)
+            let (resA, resB, resPendingA) = try await (responseA, responseB, responsePendingA)
 
             let acceptedResultA = try JSONDecoder().decode([FriendRecord].self, from: resA.data)
             let acceptedResultB = try JSONDecoder().decode([FriendRecord].self, from: resB.data)
             let pendingResultA = try JSONDecoder().decode([FriendRecord].self, from: resPendingA.data)
-            let pendingResultB = try JSONDecoder().decode([FriendRecord].self, from: resPendingB.data)
+            //let pendingResultB = try JSONDecoder().decode([FriendRecord].self, from: resPendingB.data)
 
             let fetchedAcceptedFriends = (acceptedResultA + acceptedResultB).map {
                 createFriend(from: $0)
             }
 
-            let fetchedPendingRequests = (pendingResultA + pendingResultB).map {
+            let fetchedPendingRequests = (pendingResultA).map {
                 createFriend(from: $0)
             }
 

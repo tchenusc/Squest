@@ -56,23 +56,29 @@ func loadImageFromURL(_ urlString: String) async -> UIImage? {
     }
 }
 
-func compressImage(_ image: UIImage, maxSize: Int = 10 * 1024 * 1024) -> Data? {
+func compressImageTo200KB(_ image: UIImage) -> Data? {
+    let targetSize = 200 * 1024 // 200 KB
     var compression: CGFloat = 1.0
-    var imageData = image.jpegData(compressionQuality: compression)
-    if imageData == nil {
-        print("[DEBUG] compressImage: Failed to convert image to JPEG data.")
+    let minCompression: CGFloat = 0.05
+    guard var imageData = image.jpegData(compressionQuality: compression) else {
+        print("[DEBUG] compressImageTo200KB: Failed to convert image to JPEG data.")
         return nil
     }
-    while let data = imageData, data.count > maxSize && compression > 0.1 {
-        compression -= 0.1
-        print("[DEBUG] compressImage: Compressing, quality=", compression, "size=", data.count)
-        imageData = image.jpegData(compressionQuality: compression)
+    while imageData.count > targetSize && compression > minCompression {
+        compression -= 0.05
+        if let data = image.jpegData(compressionQuality: compression) {
+            imageData = data
+            //print("[DEBUG] compressImageTo200KB: Compressing, quality=", compression, "size=", imageData.count)
+        } else {
+            print("[DEBUG] compressImageTo200KB: Failed to compress at quality=", compression)
+            return nil
+        }
     }
-    if let data = imageData, data.count > maxSize {
-        print("[DEBUG] compressImage: Unable to compress image below max size (", data.count, "bytes)")
+    if imageData.count > targetSize {
+        print("[DEBUG] compressImageTo200KB: Unable to compress image below 200 KB (", imageData.count, "bytes)")
         return nil
     }
-    print("[DEBUG] compressImage: Compression successful, final size=", imageData?.count ?? 0)
+    print("[DEBUG] compressImageTo200KB: Compression successful, final size=", imageData.count)
     return imageData
 }
 

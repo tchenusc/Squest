@@ -112,8 +112,8 @@ class ProfileViewModel: ObservableObject {
             throw ProfileError.imageProcessingFailed
         }
         
-        // Compress image
-        guard let imageData = compressImage(processedImage) else {
+        // Compress image to ~200 KB
+        guard let imageData = compressImageTo200KB(processedImage) else {
             throw ProfileError.imageProcessingFailed
         }
         
