@@ -8,6 +8,7 @@ struct ProfileView: View {
     @State private var coinHStackFrame: CGRect = .zero // New state variable to store the frame
     @State private var isCoinDisplayPressed: Bool = false // New state variable for tap animation
     @State private var shouldCoinDisplayAnimateOnDismiss: Bool = false // New state for dismissal animation
+    @StateObject private var imageLoader = ImageLoader()
     
     var body: some View {
         ZStack {
@@ -62,20 +63,26 @@ struct ProfileView: View {
                         VStack(spacing: 16) {
                             // Avatar with shadow and border
                             ZStack {
-                                AsyncImage(url: URL(string: userProfile.avatarUrl ?? "")) { image in
-                                    image
+                                if let image = imageLoader.image {
+                                    Image(uiImage: image)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
                                         .frame(width: 100, height: 100)
                                         .clipShape(Circle())
                                         .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
-                                } placeholder: {
+                                } else {
                                     Image(systemName: "person.circle.fill")
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                         .frame(width: 100, height: 100)
                                         .foregroundColor(.blue)
                                 }
+                            }
+                            .onAppear {
+                                imageLoader.preload(from: URL(string: userProfile.avatarUrl ?? ""))
+                            }
+                            .onChange(of: userProfile.avatarUrl) { _, newUrl in
+                                imageLoader.preload(from: URL(string: newUrl ?? ""))
                             }
                             
                             // Name and Username

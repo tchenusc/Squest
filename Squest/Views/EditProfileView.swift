@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import UIKit
 
 struct EditProfileView: View {
     @ObservedObject var userProfile: UserProfile
@@ -69,21 +70,7 @@ struct EditProfileView: View {
                         .overlay(Circle().stroke(Color.white, lineWidth: 4))
                         .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                 } else {
-                    AsyncImage(url: URL(string: viewModel.userProfile.avatarUrl ?? "")) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 160, height: 160)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-                    } placeholder: {
-                        Image(systemName: "person.circle.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 160, height: 160)
-                            .foregroundColor(.gray.opacity(0.4))
-                    }
+                    AvatarURLImageView(urlString: viewModel.userProfile.avatarUrl)
                 }
             }
             
@@ -236,6 +223,36 @@ struct EditProfileView: View {
             .foregroundColor(.white)
             .cornerRadius(12)
             .disabled(viewModel.isLoading)
+        }
+    }
+}
+
+struct AvatarURLImageView: View {
+    let urlString: String?
+    @StateObject private var loader = ImageLoader()
+    var body: some View {
+        ZStack {
+            if let image = loader.image {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 160, height: 160)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+            } else {
+                Image(systemName: "person.circle.fill")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 160, height: 160)
+                    .foregroundColor(.gray.opacity(0.4))
+            }
+        }
+        .onAppear {
+            loader.preload(from: URL(string: urlString ?? ""))
+        }
+        .onChange(of: urlString) { _, newUrl in
+            loader.preload(from: URL(string: newUrl ?? ""))
         }
     }
 }
