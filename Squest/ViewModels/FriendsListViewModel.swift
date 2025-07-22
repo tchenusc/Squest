@@ -15,6 +15,7 @@ struct FriendRecord: Decodable {
     let last_online: String
     let is_online: Bool
     let level: Int
+    let avatar_url: String?
 }
 
 // New Decodable struct for fetching only the dirty bit
@@ -228,6 +229,7 @@ class FriendsListViewModel: ObservableObject {
         let isOnline = record.is_online
         let level = record.level
         let initials = generateInitials(from: displayedName, fallback: username)
+        let avatarUrl = record.avatar_url
 
         return Friend(
             name: displayedName,
@@ -235,7 +237,8 @@ class FriendsListViewModel: ObservableObject {
             lastActive: formatLastActive(lastOnlineTimestamp, isOnline: isOnline),
             onQuest: nil,
             profileInitials: initials,
-            level: level
+            level: level,
+            avatarUrl: avatarUrl
         )
     }
 
@@ -295,6 +298,7 @@ class FriendsListViewModel: ObservableObject {
             newFriend.onQuest = friend.onQuest
             newFriend.profileInitials = friend.profileInitials
             newFriend.level = Int64(friend.level)
+            newFriend.avatarUrl = friend.avatarUrl // <-- add this line
             newFriend.listType = "friend" // New attribute for list type
         }
 
@@ -307,6 +311,7 @@ class FriendsListViewModel: ObservableObject {
             newRequest.onQuest = request.onQuest
             newRequest.profileInitials = request.profileInitials
             newRequest.level = Int64(request.level)
+            newRequest.avatarUrl = request.avatarUrl // <-- add this line
             newRequest.listType = "request" // New attribute for list type
         }
 
@@ -480,7 +485,8 @@ extension FriendsListViewModel {
                     lastActive: coreDataFriend.lastActive ?? "",
                     onQuest: coreDataFriend.onQuest,
                     profileInitials: coreDataFriend.profileInitials ?? "?",
-                    level: Int(coreDataFriend.level)
+                    level: Int(coreDataFriend.level),
+                    avatarUrl: coreDataFriend.avatarUrl // <-- add this line
                 )
 
                 if coreDataFriend.listType == "friend" {

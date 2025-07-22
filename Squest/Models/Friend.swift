@@ -15,4 +15,15 @@ struct Friend: Identifiable {
     let onQuest: String?
     let profileInitials: String // e.g., "JR"
     let level: Int
+    let avatarUrl: String?
+    
+    init(name: String, username: String, lastActive: String, onQuest: String?, profileInitials: String, level: Int, avatarUrl: String? = nil) {
+        self.name = name
+        self.username = username
+        self.lastActive = lastActive
+        self.onQuest = onQuest
+        self.profileInitials = profileInitials
+        self.level = level
+        self.avatarUrl = avatarUrl
+    }
 }

@@ -167,7 +167,7 @@ func printAllFriendListData(context: NSManagedObjectContext) {
             print("No FriendList records found.")
         } else {
             for data in results {
-                print("name: \(data.name ?? "nil"), username: \(data.username ?? "nil"), lastActive: \(data.lastActive ?? "nil"), onQuest: \(data.onQuest ?? "nil"), profileInitials: \(data.profileInitials ?? "nil"), level: \(data.level)")
+                print("name: \(data.name ?? "nil"), username: \(data.username ?? "nil"), lastActive: \(data.lastActive ?? "nil"), onQuest: \(data.onQuest ?? "nil"), profileInitials: \(data.profileInitials ?? "nil"), level: \(data.level), avatarUrl: \(data.avatarUrl ?? "nil")")
             }
         }
     } catch {

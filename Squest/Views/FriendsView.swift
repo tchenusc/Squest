@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum FriendFilter: String, CaseIterable, Identifiable {
     case myFriends = "My Friends"
@@ -414,14 +415,18 @@ struct FriendRow: View {
     
     var body: some View {
         HStack(spacing: 15) {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.49, green: 0.4, blue: 0.82))
-                    .frame(width: 50, height: 50)
-                Text(friend.profileInitials)
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
+            if let urlString = friend.avatarUrl, !urlString.isEmpty {
+                FriendAvatarImageView(urlString: urlString, size: 50)
+            } else {
+                ZStack {
+                    Circle()
+                        .fill(Color(red: 0.49, green: 0.4, blue: 0.82))
+                        .frame(width: 50, height: 50)
+                    Text(friend.profileInitials)
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                }
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -501,6 +506,38 @@ struct FriendRow: View {
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+    }
+}
+
+struct FriendAvatarImageView: View {
+    let urlString: String?
+    var size: CGFloat = 50
+    @StateObject private var loader = ImageLoader()
+    var body: some View {
+        ZStack {
+            if let image = loader.image {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: size, height: size)
+                    .clipShape(Circle())
+            } else {
+                Circle()
+                    .fill(Color(red: 0.49, green: 0.4, blue: 0.82))
+                    .frame(width: size, height: size)
+                Image(systemName: "person.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size * 0.6, height: size * 0.6)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+        }
+        .onAppear {
+            loader.preload(from: URL(string: urlString ?? ""))
+        }
+        .onChange(of: urlString) { _, newUrl in
+            loader.preload(from: URL(string: newUrl ?? ""))
+        }
     }
 }
 
