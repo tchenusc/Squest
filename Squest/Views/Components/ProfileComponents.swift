@@ -87,4 +87,78 @@ struct Triangle: Shape {
         path.closeSubpath()
         return path
     }
+}
+
+struct BadgeWallView: View {
+    struct Badge: Identifiable {
+        let id = UUID()
+        let name: String
+        let imageName: String // Use asset name or URL
+        let isCompleted: Bool
+    }
+    let badges: [Badge]
+    let columns = [GridItem(.adaptive(minimum: 60), spacing: 16)]
+    @State private var poppedBadgeId: UUID? = nil
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Wall of Fame")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(.black)
+                .padding(.leading, 20)
+            // Only the badge grid is inside the border
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(badges) { badge in
+                    Button(action: {
+                        poppedBadgeId = badge.id
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+                            poppedBadgeId = nil
+                        }
+                        print("Badge tapped: \(badge.name)")
+                    }) {
+                        VStack(spacing: 6) {
+                            ZStack {
+                                if badge.isCompleted {
+                                    Image(badge.imageName)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 60, height: 60)
+                                        .clipShape(Circle())
+                                        .overlay(Circle().stroke(Color.yellow, lineWidth: 3))
+                                        .shadow(radius: 4)
+                                        .scaleEffect(poppedBadgeId == badge.id ? 1.18 : 1.0)
+                                        .animation(.spring(response: 0.25, dampingFraction: 0.45, blendDuration: 0.1), value: poppedBadgeId == badge.id)
+                                } else {
+                                    Image(badge.imageName)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 60, height: 60)
+                                        .clipShape(Circle())
+                                        .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2))
+                                        .opacity(0.3)
+                                        .scaleEffect(poppedBadgeId == badge.id ? 1.18 : 1.0)
+                                        .animation(.spring(response: 0.25, dampingFraction: 0.45, blendDuration: 0.1), value: poppedBadgeId == badge.id)
+                                    Image(systemName: "lock.fill")
+                                        .foregroundColor(.gray)
+                                        .offset(y: 20)
+                                }
+                            }
+                            Text(badge.name)
+                                .font(.caption)
+                                .foregroundColor(badge.isCompleted ? .primary : .gray)
+                                .lineLimit(1)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.gray.opacity(0.4), lineWidth: 3)
+                    .background(Color.white.cornerRadius(20))
+            )
+            .padding(.horizontal, 10)
+        }
+    }
 } 

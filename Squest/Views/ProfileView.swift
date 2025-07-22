@@ -147,20 +147,15 @@ struct ProfileView: View {
                                 }
                             }
                             .padding(.horizontal, 20)
-                            // Recent Activity Section
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text("Recent Activity")
-                                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                                    .foregroundColor(.black)
-                                ForEach(viewModel.recentActivity) { activity in
-                                    ActivityRow(
-                                        icon: activity.icon,
-                                        title: activity.title,
-                                        time: activity.time
-                                    )
-                                }
-                            }
-                            .padding(.horizontal, 20)
+                            // Wall of Fame Section (Badges)
+                            BadgeWallView(badges: [
+                                .init(name: "Morning Meditation", imageName: "Goldcoin_questCompleted", isCompleted: true),
+                                .init(name: "Nature Explorer", imageName: "Goldcoin_questCompleted", isCompleted: false),
+                                .init(name: "Knowledge Expansion", imageName: "Goldcoin_questCompleted", isCompleted: true),
+                                .init(name: "Digital Detox", imageName: "Goldcoin_questCompleted", isCompleted: false),
+                                .init(name: "Ultimate Challenge", imageName: "Goldcoin_questCompleted", isCompleted: false),
+                                .init(name: "Legendary Feat", imageName: "Goldcoin_questCompleted", isCompleted: false)
+                            ])
                         }
                         .padding(.bottom, 24)
                     }
