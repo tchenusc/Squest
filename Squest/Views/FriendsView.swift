@@ -418,14 +418,14 @@ struct FriendRow: View {
             if let urlString = friend.avatarUrl, !urlString.isEmpty {
                 FriendAvatarImageView(urlString: urlString, size: 50)
             } else {
-                ZStack {
-                    Circle()
-                        .fill(Color(red: 0.49, green: 0.4, blue: 0.82))
-                        .frame(width: 50, height: 50)
-                    Text(friend.profileInitials)
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+            ZStack {
+                Circle()
+                    .fill(Color(red: 0.49, green: 0.4, blue: 0.82))
+                    .frame(width: 50, height: 50)
+                Text(friend.profileInitials)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
                 }
             }
 

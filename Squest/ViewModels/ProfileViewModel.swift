@@ -143,4 +143,41 @@ class ProfileViewModel: ObservableObject {
             throw ProfileError.uploadFailed
         }
     }
+}
+
+extension ProfileViewModel {
+    var levelProgress: Double {
+        // Replace with real calculation if available
+        0.75
+    }
+    var coins: Int {
+        // Replace with real value if available
+        1000
+    }
+    var levelLabel: String {
+        // Replace with real value if available
+        "Level 5"
+    }
+    var levelProgressText: String {
+        // Replace with real value if available
+        "75% to next level"
+    }
+    var stats: [(value: String, title: String)] {
+        // Replace with real values if available
+        [("1,234", "Points"), ("42", "Friends"), ("15", "Quests")]
+    }
+    struct Activity: Identifiable {
+        let id = UUID()
+        let icon: String
+        let title: String
+        let time: String
+    }
+    var recentActivity: [Activity] {
+        // Replace with real data if available
+        [
+            Activity(icon: "star.fill", title: "Completed Quest #1", time: "1 hours ago"),
+            Activity(icon: "star.fill", title: "Completed Quest #2", time: "2 hours ago"),
+            Activity(icon: "star.fill", title: "Completed Quest #3", time: "3 hours ago")
+        ]
+    }
 } 
