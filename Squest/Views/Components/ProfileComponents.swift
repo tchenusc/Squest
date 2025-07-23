@@ -97,7 +97,7 @@ struct BadgeWallView: View {
         let isCompleted: Bool
     }
     let badges: [Badge]
-    let columns = [GridItem(.adaptive(minimum: 60), spacing: 16)]
+    let columns = [GridItem(.adaptive(minimum: 80, maximum: 80), spacing: 4)] // Four per line, minimal spacing
     @State private var poppedBadgeId: UUID? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -106,11 +106,11 @@ struct BadgeWallView: View {
                 .foregroundColor(.black)
                 .padding(.leading, 20)
             // Only the badge grid is inside the border
-            LazyVGrid(columns: columns, spacing: 16) {
+            LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(badges) { badge in
                     Button(action: {
                         poppedBadgeId = badge.id
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                             poppedBadgeId = nil
                         }
                         print("Badge tapped: \(badge.name)")
@@ -121,44 +121,215 @@ struct BadgeWallView: View {
                                     Image(badge.imageName)
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 60, height: 60)
-                                        .clipShape(Circle())
-                                        .overlay(Circle().stroke(Color.yellow, lineWidth: 3))
-                                        .shadow(radius: 4)
-                                        .scaleEffect(poppedBadgeId == badge.id ? 1.18 : 1.0)
-                                        .animation(.spring(response: 0.25, dampingFraction: 0.45, blendDuration: 0.1), value: poppedBadgeId == badge.id)
+                                        .frame(width: 80, height: 80)
+                                        .shadow(color: poppedBadgeId == badge.id ? Color.purple.opacity(0.25) : Color.black.opacity(0.08), radius: poppedBadgeId == badge.id ? 16 : 6, x: 0, y: 2)
+                                        .scaleEffect(poppedBadgeId == badge.id ? 1.22 : 1.0)
+                                        .animation(.spring(response: 0.32, dampingFraction: 0.65, blendDuration: 0.12), value: poppedBadgeId == badge.id)
                                 } else {
                                     Image(badge.imageName)
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 60, height: 60)
-                                        .clipShape(Circle())
-                                        .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 2))
-                                        .opacity(0.3)
-                                        .scaleEffect(poppedBadgeId == badge.id ? 1.18 : 1.0)
-                                        .animation(.spring(response: 0.25, dampingFraction: 0.45, blendDuration: 0.1), value: poppedBadgeId == badge.id)
+                                        .frame(width: 80, height: 80)
+                                        .opacity(0.18)
+                                        .shadow(color: poppedBadgeId == badge.id ? Color.purple.opacity(0.18) : Color.black.opacity(0.08), radius: poppedBadgeId == badge.id ? 12 : 6, x: 0, y: 2)
+                                        .scaleEffect(poppedBadgeId == badge.id ? 1.22 : 1.0)
+                                        .animation(.spring(response: 0.32, dampingFraction: 0.65, blendDuration: 0.12), value: poppedBadgeId == badge.id)
                                     Image(systemName: "lock.fill")
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(Color.gray.opacity(0.7))
                                         .offset(y: 20)
                                 }
                             }
-                            Text(badge.name)
-                                .font(.caption)
-                                .foregroundColor(badge.isCompleted ? .primary : .gray)
-                                .lineLimit(1)
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
             }
-            .padding(.horizontal, 20)
             .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.gray.opacity(0.4), lineWidth: 3)
-                    .background(Color.white.cornerRadius(20))
+                LinearGradient(gradient: Gradient(colors: [Color.white, Color(.systemGray6)]), startPoint: .top, endPoint: .bottom)
+                    .cornerRadius(28)
+                    .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 28)
+                    .stroke(Color(red: 0.15, green: 0.15, blue: 0.18), lineWidth: 1.2)
             )
             .padding(.horizontal, 10)
         }
+    }
+}
+
+struct CoinDisplayView: View {
+    let coins: Int
+    let onTap: () -> Void
+    @Binding var isPressed: Bool
+    @Binding var shouldAnimateOnDismiss: Bool
+    @Binding var coinHStackFrame: CGRect
+    
+    var body: some View {
+        HStack {
+            HStack {
+                Image("CoinPouch")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 30, height: 30)
+                Text("\(coins)")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+            .background(GeometryReader { geometry in
+                Color.clear.onAppear {
+                    coinHStackFrame = geometry.frame(in: .global)
+                }
+            })
+            .scaleEffect(isPressed || shouldAnimateOnDismiss ? 0.95 : 1.0)
+            .animation(.easeOut(duration: 0.2), value: isPressed)
+            .animation(.easeOut(duration: 0.2), value: shouldAnimateOnDismiss)
+            .onTapGesture {
+                onTap()
+                isPressed = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    isPressed = false
+                }
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+    }
+} 
+
+struct ProfileHeaderView: View {
+    let displayedName: String?
+    let username: String?
+    let avatarUrl: String?
+    @ObservedObject var imageLoader: ImageLoader
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                if let image = imageLoader.image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 100, height: 100)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                } else {
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100, height: 100)
+                        .foregroundColor(.blue)
+                }
+            }
+            VStack(spacing: 4) {
+                Text(displayedName ?? "User")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
+                Text("@\(username ?? "user")")
+                    .font(.system(size: 17, weight: .medium, design: .rounded))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 50)
+        .padding(.bottom, 24)
+        .background(Color(.systemGray6).opacity(0.5))
+        .onAppear {
+            imageLoader.preload(from: URL(string: avatarUrl ?? ""))
+        }
+        .onChange(of: avatarUrl) { _, newUrl in
+            imageLoader.preload(from: URL(string: newUrl ?? ""))
+        }
+    }
+} 
+
+struct LevelProgressView: View {
+    let levelLabel: String
+    let levelProgress: CGFloat
+    let levelProgressText: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Level Progress")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
+                Spacer()
+                Text(levelLabel)
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(red: 0.49, green: 0.4, blue: 0.82))
+                    .cornerRadius(12)
+            }
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(.systemGray5))
+                        .frame(height: 12)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(red: 0.49, green: 0.4, blue: 0.82))
+                        .frame(width: geometry.size.width * levelProgress, height: 12)
+                }
+            }
+            .frame(height: 12)
+            Text(levelProgressText)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 20)
+    }
+} 
+
+struct StatsGridView: View {
+    let stats: [(value: String, title: String)]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Statistics")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(.black)
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 20) {
+                ForEach(stats, id: \.title) { stat in
+                    StatView(value: stat.value, title: stat.title)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+} 
+
+struct TopRightButtonsView: View {
+    let userProfile: UserProfile
+    var body: some View {
+        HStack(spacing: 8) {
+            NavigationLink(destination: EditProfileView(userProfile: userProfile)) {
+                Image(systemName: "pencil")
+                    .font(.system(size: 24))
+                    .foregroundColor(.black)
+            }
+            NavigationLink(destination: SettingsView()) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.black)
+            }
+        }
+        .padding(.top, 8)
+        .padding(.trailing, 20)
     }
 } 

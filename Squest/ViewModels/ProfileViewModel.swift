@@ -43,7 +43,26 @@ class ProfileViewModel: ObservableObject {
             errorMessage = "Display name must be 50 characters or less"
             return false
         }
-        
+        // Only allow letters, numbers, spaces, hyphens, and apostrophes
+        let allowedCharset = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -'")
+        if trimmedName.rangeOfCharacter(from: allowedCharset.inverted) != nil {
+            errorMessage = "Display name contains invalid characters. Only letters, numbers, spaces, hyphens, and apostrophes are allowed."
+            return false
+        }
+        // Prevent repeated characters (e.g., 'aaaaaa', '-----')
+        let repeatedCharPattern = "(.)\\1{3,}"
+        if let _ = trimmedName.range(of: repeatedCharPattern, options: .regularExpression) {
+            errorMessage = "Display name cannot contain repeated characters."
+            return false
+        }
+        // Prevent SQL/meta characters and code injection patterns
+        let forbiddenPatterns = ["--", ";", "/*", "*/", "<script>", "</script>", "\\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|REPLACE|EXEC|UNION|OR|AND)\\b"]
+        for pattern in forbiddenPatterns {
+            if trimmedName.range(of: pattern, options: .regularExpression) != nil {
+                errorMessage = "Display name contains forbidden patterns."
+                return false
+            }
+        }
         return true
     }
     
