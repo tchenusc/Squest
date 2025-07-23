@@ -14,9 +14,12 @@ struct StatView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(Color(.systemGray6).opacity(0.5))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .background(Color.white)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color(.systemGray4), lineWidth: 2.0)
+        )
     }
 }
 
@@ -145,14 +148,11 @@ struct BadgeWallView: View {
                 }
             }
             .padding(.vertical, 16)
-            .background(
-                LinearGradient(gradient: Gradient(colors: [Color.white, Color(.systemGray6)]), startPoint: .top, endPoint: .bottom)
-                    .cornerRadius(28)
-                    .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
-            )
+            .background(Color.white)
+            .cornerRadius(24)
             .overlay(
-                RoundedRectangle(cornerRadius: 28)
-                    .stroke(Color(red: 0.15, green: 0.15, blue: 0.18), lineWidth: 1.2)
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(Color(.systemGray4), lineWidth: 2.0)
             )
             .padding(.horizontal, 10)
         }
@@ -179,13 +179,12 @@ struct CoinDisplayView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color(.systemGray6))
+            .background(Color.white)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    .stroke(Color(.systemGray4), lineWidth: 2.0)
             )
-            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
             .background(GeometryReader { geometry in
                 Color.clear.onAppear {
                     coinHStackFrame = geometry.frame(in: .global)
@@ -244,7 +243,7 @@ struct ProfileHeaderView: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 50)
         .padding(.bottom, 24)
-        .background(Color(.systemGray6).opacity(0.5))
+        .background(Color.white)
         .onAppear {
             imageLoader.preload(from: URL(string: avatarUrl ?? ""))
         }

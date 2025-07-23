@@ -17,7 +17,7 @@ struct ProfileView: View {
     
     var body: some View {
         ZStack {
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 ZStack(alignment: .topTrailing) {
                     VStack(alignment: .leading, spacing: 0) {
                         // Coin Display in top left
@@ -65,7 +65,7 @@ struct ProfileView: View {
                     TopRightButtonsView(userProfile: userProfile)
                 }
             }
-            .background(Color(.systemGray6).opacity(0.5).ignoresSafeArea())
+            .background(Color.white.ignoresSafeArea())
             if showingCoinDescription {
                 Color.clear
                     .contentShape(Rectangle())
