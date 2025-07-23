@@ -318,8 +318,10 @@ struct TopRightButtonsView: View {
     var body: some View {
         HStack(spacing: 8) {
             NavigationLink(destination: EditProfileView(userProfile: userProfile)) {
-                Image(systemName: "pencil")
-                    .font(.system(size: 24))
+                Image("editProfileIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
                     .foregroundColor(.black)
             }
             NavigationLink(destination: SettingsView()) {
