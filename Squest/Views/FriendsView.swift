@@ -347,6 +347,23 @@ struct FriendsView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 40)
+                        } else if viewModel.selectedFilter == .myFriends && viewModel.friends.isEmpty {
+                            VStack(spacing: 12) {
+                                Image("noFriends")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 90, height: 90)
+                                    .opacity(0.7)
+                                Text("You have no friends yet!")
+                                    .font(.headline)
+                                    .foregroundColor(Color(white: 0.5))
+                                Text("Add friends to start your adventure together.")
+                                    .font(.subheadline)
+                                    .foregroundColor(Color(white: 0.5))
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 40)
                         } else {
                             ForEach(viewModel.displayedFriends) { friend in
                                 FriendRow(friend: friend, viewModel: viewModel)

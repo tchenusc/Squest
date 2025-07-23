@@ -66,6 +66,9 @@ struct ProfileView: View {
                 }
             }
             .background(Color.white.ignoresSafeArea())
+            .onDisappear {
+                showingCoinDescription = false
+            }
             if showingCoinDescription {
                 Color.clear
                     .contentShape(Rectangle())

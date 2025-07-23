@@ -269,7 +269,7 @@ struct LevelProgressView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color(red: 0.49, green: 0.4, blue: 0.82))
+                    .background(Color(red: 0.22, green: 0.53, blue: 0.93)) // Blue
                     .cornerRadius(12)
             }
             GeometryReader { geometry in
@@ -278,7 +278,7 @@ struct LevelProgressView: View {
                         .fill(Color(.systemGray5))
                         .frame(height: 12)
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(red: 0.49, green: 0.4, blue: 0.82))
+                        .fill(LinearGradient(gradient: Gradient(colors: [Color(red: 0.22, green: 0.53, blue: 0.93), Color(red: 0.13, green: 0.72, blue: 0.98)]), startPoint: .leading, endPoint: .trailing))
                         .frame(width: geometry.size.width * levelProgress, height: 12)
                 }
             }
