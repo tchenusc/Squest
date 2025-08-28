@@ -34,7 +34,7 @@ This project showcases **end-to-end product development and management**, from r
 
 | Layer                   | Technology Used                          |
 |-------------------------|-----------------------------------------|
-| **Frontend (iOS)**      | SwiftUI, UIKit                          |
+| **Frontend (iOS)**      | SwiftUI, UIKit, MVVM Architecture       |
 | **Backend (BaaS)**      | Supabase (Auth, Database, API)          |
 | **Database**            | PostgreSQL (Managed by Supabase)        |
 | **Version Control**     | Git & GitHub                            |
