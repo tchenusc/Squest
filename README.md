@@ -1,31 +1,7 @@
 # 📱 Squest: Gamified Life Improvement App
 
-Squest is a **full-stack iOS application** that gamifies self-improvement by turning habits and goals into a **quest-based adventure system**.  
-Beyond its technical foundation, this project demonstrates **end-to-end product management**, from market research and design planning to development milestones, testing, and launch strategies.
-
----
-
-## 🎯 Project Highlights
-
-- **Product Vision:** Designed for teenagers and young adults to explore life beyond routines through curated "side quests."  
-- **End-to-End Roadmap:** Created a **6-phase product plan** (Planning → Customer Feedback → MVP → Public Release → Feature Iteration → Marketing).  
-- **User-Centered Design:** Conducted UI planning, market analysis, and iterative feedback loops to refine user experience.  
-- **Full-Stack Engineering:** Built a SwiftUI iOS app backed by a Flask API, Supabase/Firebase authentication, and a scalable database.  
-- **Gamified Engagement:** Added streak tracking, levels, leaderboards, and rewards for consistent growth.  
-- **Marketing Strategy:** Developed social media and growth plans to build brand awareness before product launch.
-
----
-
-## 🛠️ Tech Stack
-
-| Layer                   | Technology Used                          |
-|-------------------------|-----------------------------------------|
-| **Frontend (iOS)**      | SwiftUI, UIKit                          |
-| **Backend (BaaS)**      | Supabase (Auth, Database, API)          |
-| **Database**            | PostgreSQL (Managed by Supabase)        |
-| **Version Control**     | Git & GitHub                            |
-| **Project Tools**       | Figma, Canva, Notion, Trello, Google Docs |
-
+Squest is an iOS app that turns daily self-improvement into a **gamified quest system**, helping users build habits and explore new experiences through **adventure-themed engagement**.  
+Built with **SwiftUI and Supabase**, this project highlights **end-to-end product management**—from concept design and market research to feature implementation and growth planning.
 
 ---
 
@@ -39,17 +15,42 @@ Beyond its technical foundation, this project demonstrates **end-to-end product 
 
 ---
 
-## 📸 Screenshots (Placeholder)
+## 🛠️ Tech Stack
 
-| Quest Page | Profile Page | Leaderboard |
-|------------|-------------|------------|
-| ![Quest Page](link-to-image) | ![Profile Page](link-to-image) | ![Leaderboard](link-to-image) |
+| Layer                   | Technology Used                          |
+|-------------------------|-----------------------------------------|
+| **Frontend (iOS)**      | SwiftUI, UIKit                          |
+| **Backend (BaaS)**      | Supabase (Auth, Database, API)          |
+| **Database**            | PostgreSQL (Managed by Supabase)        |
+| **Version Control**     | Git & GitHub                            |
+| **Project Tools**       | Figma, Canva, Notion, Trello, Google Docs |
+
+---
+
+## 🎯 Project Highlights
+
+- **Product Vision:** Designed for teenagers and young adults to explore life beyond routines through curated "side quests."  
+- **End-to-End Roadmap:** Built a **6-phase plan** (Planning → Feedback → MVP → Public Release → Feature Iteration → Marketing).  
+- **Leadership & PM Focus:** Documented milestones, gathered customer feedback, and managed product strategy alongside development.  
+- **Full-Stack Development:** Built a SwiftUI frontend integrated with Supabase for scalable authentication, database, and APIs.  
+- **Gamified Experience:** Implemented streak tracking, levels, and leaderboards for habit-building engagement.
+
+---
+
+## 👨‍💻 Role & Skills Demonstrated
+
+- **Role:** Product Manager & Lead Developer  
+- **Key Skills:**  
+  - Product roadmapping & milestone planning  
+  - Agile project management & technical documentation  
+  - UI/UX design in Figma  
+  - Full-stack iOS development with Supabase integration  
+  - Database design & API management  
+  - Marketing and growth strategy  
 
 ---
 
 ## 🚀 Project Management & Milestones
-
-This project was built with **structured milestones** and emphasizes leadership in software development:
 
 | Phase | Focus | Key Deliverables |
 |------|-------|------------------|
@@ -72,15 +73,8 @@ This project was built with **structured milestones** and emphasizes leadership 
 
 ---
 
-## 👨‍💻 Role & Skills Demonstrated
+## 📸 Screenshots (Placeholder)
 
-- **Product Manager & Lead Developer:** Planned the full product lifecycle, built prototypes, and led technical architecture.  
-- **Skills Highlighted:**  
-  - Product roadmapping & milestone planning  
-  - Agile project management & documentation  
-  - UI/UX design in Figma  
-  - Full-stack iOS development  
-  - API design & database management  
-  - Marketing and growth strategy  
-
----
+| Quest Page | Profile Page | Leaderboard |
+|------------|-------------|------------|
+| ![Quest Page](link-to-image) | ![Profile Page](link-to-image) | ![Leaderboard](link-to-image) |
