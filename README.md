@@ -1,11 +1,11 @@
-# 📱 Squest: Gamified Life Improvement App
+# Squest: Gamified Life Improvement App
 
 Squest is an iOS app that turns daily self-improvement into a **gamified quest system**, helping users build habits and explore new experiences through **adventure-themed engagement**.  
 This project showcases **end-to-end product development and management**, from roadmap creation and market research to feature delivery and iteration.
 
 ---
 
-## 🗓️ Project Timeline & Accomplishments
+## Project Timeline & Accomplishments
 
 | Phase | Focus | Key Achievements |
 |------|-------|------------------|
@@ -20,7 +20,7 @@ This project showcases **end-to-end product development and management**, from r
 
 ---
 
-## 🎯 Project Highlights
+## Project Highlights
 
 - **Lifecycle Management:** Planned, documented, and delivered the app over multiple stages.  
 - **Roadmap-Driven Execution:** Created structured **6-phase roadmap** with deliverables for each milestone.  
@@ -30,7 +30,7 @@ This project showcases **end-to-end product development and management**, from r
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer                   | Technology Used                          |
 |-------------------------|-----------------------------------------|
@@ -42,7 +42,7 @@ This project showcases **end-to-end product development and management**, from r
 
 ---
 
-## 🧠 Skills Demonstrated
+## Skills Demonstrated
 
 - **Project Management & Planning**  
   - Built a 6-phase **project roadmap** with clear deliverables for each milestone.  
@@ -71,18 +71,17 @@ This project showcases **end-to-end product development and management**, from r
 
 ---
 
-## 🧩 Core Features (Currently Supported)
+## Core Features (Currently Supported)
 
-- 🔐 **User Accounts**: Signup, login, and logout  
-- 🧭 **Quest Selection**: Browse, select, and complete quests  
-- 👤 **Profile Management**: View and edit user profile  
-- 🤝 **Friends System**: Add friends and view friend activity  
-- 🎮 **Gamification**: Streak tracking, XP, and quest history  
+- **User Accounts**: Signup, login, and logout  
+- **Quest Selection**: Browse, select, and complete quests  
+- **Profile Management**: View and edit user profile  
+- **Friends System**: Add friends and view friend activity  
+- **Gamification**: Streak tracking, XP, and quest history  
 
 ---
 
-## 📸 Screenshots
-
+## Screenshots
 
 | Quest Page | Quest Details | Quest Completed |
 |------------|---------------|----------------|
@@ -100,13 +99,12 @@ This project showcases **end-to-end product development and management**, from r
 |----------|
 | <img src="appImages/Settings.png" alt="Settings" width="200"/> |
 
-
 ---
 
-## 🔥 Future Improvements
+## Future Improvements
 
-- 📊 Advanced leaderboards and leagues  
-- 💬 Messaging and group challenges  
-- 🌍 Cross-platform (iOS/Android) support  
-- 🔐 Enhanced security protocols  
-- 🎨 Lottie animations and richer UI themes  
+- Advanced leaderboards and leagues  
+- Messaging and group challenges  
+- Cross-platform (iOS/Android) support  
+- Enhanced security protocols  
+- Lottie animations and richer UI themes  
