@@ -42,16 +42,32 @@ This project showcases **end-to-end product development and management**, from r
 
 ---
 
-## 👨‍💻 Role & Skills Demonstrated
+## 🧠 Skills Demonstrated
 
-- **Role:** Product Manager & Lead Developer  
-- **Skills:**  
-  - Project roadmapping and milestone planning  
-  - Agile project management and documentation  
-  - UI/UX design in Figma  
-  - Full-stack iOS app development with Supabase integration  
-  - Database design and API usage  
-  - Marketing and growth strategy  
+- **Project Management & Planning**  
+  - Built a 6-phase **project roadmap** with clear deliverables for each milestone.  
+  - Authored **technical specifications** and **market research reports** to guide development.  
+  - Prioritized features and created iterative feedback loops with stakeholders.  
+
+- **UI/UX Design & Prototyping**  
+  - Designed wireframes and a **high-fidelity Figma prototype** for app flow and branding.  
+  - Conducted **user interviews** and usability testing to refine interface decisions.  
+  - Established a **consistent design system** with color palettes, typography, and iconography.  
+
+- **iOS Development**  
+  - Built the app in **SwiftUI** with modular, reusable components.  
+  - Implemented **authentication flows, profile management, quest tracking, and friend features**.  
+  - Integrated animations, streak indicators, and progress bars for gamification.  
+
+- **Backend-as-a-Service Integration**  
+  - Used **Supabase** for authentication, database, and storage to create a scalable backend.  
+  - Designed database schema and optimized queries for leaderboard, friend activity, and quests.  
+  - Implemented **secure auth tokens** and role-based data access policies.  
+
+- **Marketing & Growth Strategy**  
+  - Created **social media content plans** and growth metrics to build awareness pre-launch.  
+  - Drafted a **monetization strategy** and product release plan.  
+  - Conducted competitor analysis to find market positioning opportunities.  
 
 ---
 
