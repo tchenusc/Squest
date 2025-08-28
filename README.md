@@ -83,9 +83,23 @@ This project showcases **end-to-end product development and management**, from r
 
 ## 📸 Screenshots (Placeholder)
 
-| Quest Page | Profile Page | Leaderboard |
-|------------|-------------|------------|
-| ![Quest Page](appImages/profile.png) | ![Profile Page](link-to-image) | ![Leaderboard](link-to-image) |
+
+| Quest Page | Quest Details | Quest Completed |
+|------------|---------------|----------------|
+| <img src="appImages/QuestPage.png" alt="Quest Page" width="200"/> | <img src="appImages/QuestDetails.png" alt="Quest Details" width="200"/> | <img src="appImages/QuestCompleted.png" alt="Quest Completed" width="200"/> |
+
+| Profile | Friend List | Add New Friend |
+|---------|------------|----------------|
+| <img src="appImages/Profile.png" alt="Profile" width="200"/> | <img src="appImages/FriendList.png" alt="Friend List" width="200"/> | <img src="appImages/AddNewFriend.png" alt="Add New Friend" width="200"/> |
+
+| Log In | Sign Up | Welcome Page |
+|--------|---------|--------------|
+| <img src="appImages/LogIn.png" alt="Log In" width="200"/> | <img src="appImages/SignUp.png" alt="Sign Up" width="200"/> | <img src="appImages/WelcomePage.png" alt="Welcome Page" width="200"/> |
+
+| Settings |
+|----------|
+| <img src="appImages/Settings.png" alt="Settings" width="200"/> |
+
 
 ---
 
