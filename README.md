@@ -85,7 +85,7 @@ This project showcases **end-to-end product development and management**, from r
 
 | Quest Page | Profile Page | Leaderboard |
 |------------|-------------|------------|
-| ![Quest Page](link-to-image) | ![Profile Page](link-to-image) | ![Leaderboard](link-to-image) |
+| ![Quest Page](appImages/profile.png) | ![Profile Page](link-to-image) | ![Leaderboard](link-to-image) |
 
 ---
 
