@@ -81,7 +81,7 @@ This project showcases **end-to-end product development and management**, from r
 
 ---
 
-## 📸 Screenshots (Placeholder)
+## 📸 Screenshots
 
 
 | Quest Page | Quest Details | Quest Completed |
