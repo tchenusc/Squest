@@ -13,7 +13,7 @@ This project showcases **end-to-end product development and management**, from r
 | **2: Market Research** | Competitive analysis and audience insights | Created [**Market Importance Report**](https://docs.google.com/document/d/1tMLW8n0SGf-t5oIPhAMnyPan17_z2fVL5479Zk0yHTg/edit?usp=sharing) with competitor review |
 | **3: UI/UX Design** | Initial sketches and branding | Delivered **UI Sketches** and **Figma Designs** |
 | **4: Feedback & Iteration** | Early user testing | Conducted interviews and revised app flow |
-| **5: MVP Development** | Core feature build-out | Implemented **signup/login, quests, profiles, and friends** (See below for app screenshots)|
+| **5: MVP Development** | Core feature build-out | Implemented **signup/login, quests, profiles, and friends** (See [below](#-screenshots) for app screenshots)|
 | **6: Growth Strategy** | Marketing plans and monetization | Built **Marketing & Monetization Plans** for scaling |
 
 > **Impact:** Demonstrates ability to manage a **multi-phase project** from concept to functional product, documenting milestones and iterating based on research and user feedback.
