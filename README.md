@@ -107,4 +107,4 @@ This project showcases **end-to-end product development and management**, from r
 - Messaging and group challenges  
 - Cross-platform (iOS/Android) support  
 - Enhanced security protocols  
-- Lottie animations and richer UI themes  
+- Improve animations and incorporate richer UI themes  
